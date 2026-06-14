@@ -97,8 +97,8 @@ body {
     border-bottom: 1px solid #ddd;
 }
 
-body.categorias-carregando #categorias {
-    visibility: hidden;
+#categorias .cat-btn:not([data-cat="ele"]) {
+    display: none;
 }
 
 .cat-btn {
@@ -394,7 +394,7 @@ body.categorias-carregando #categorias {
 </style>
 </head>
 
-<body class="categorias-carregando">
+<body>
 
 <!-- ======== FAIXA AZUL ======== -->
 <section class="faixa-azul">
@@ -414,13 +414,13 @@ body.categorias-carregando #categorias {
 
 <!-- ======== CATEGORIAS ======== -->
 <div id="categorias">
-    <button class="cat-btn ativo" data-cat="todos">Todos</button>
+    <button class="cat-btn" data-cat="todos">Todos</button>
     <button class="cat-btn" data-cat="arc">Ar-condicionado</button>
     <button class="cat-btn" data-cat="ven">Ventiladores</button>
     <button class="cat-btn" data-cat="aqu">Aquecedores</button>
     <button class="cat-btn" data-cat="cli">Climatizadores</button>
     <button class="cat-btn" data-cat="pur">Purificadores</button>
-    <button class="cat-btn" data-cat="ele">Eletrônicos</button>
+    <button class="cat-btn ativo" data-cat="ele">Eletrônicos</button>
 </div>
 
 <!-- ======== PRODUTOS ======== -->
@@ -641,8 +641,7 @@ document.querySelectorAll(".cat-btn").forEach(btn => {
 
 carregarProdutos().then(() => {
     atualizarCategoriasDisponiveis();
-    aplicarFiltro("todos");
-    document.body.classList.remove("categorias-carregando");
+    aplicarFiltro("ele");
 });
 </script>
 
