@@ -1,0 +1,45 @@
+name: Netlify deploy
+
+on:
+  push:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      NETLIFY_SITE_ID: abb8e96e-1e7d-4e1a-bd41-fa0dd6190495
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy production
+        if: github.ref == 'refs/heads/main'
+        run: |
+          npx --yes netlify-cli@latest deploy \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --site "$NETLIFY_SITE_ID" \
+            --dir "." \
+            --prod \
+            --message "Production deploy $GITHUB_SHA"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      - name: Deploy branch preview
+        if: github.ref != 'refs/heads/main'
+        run: |
+          BRANCH_ALIAS="$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g; s/^-+|-+$//g' | cut -c1-37)"
+          npx --yes netlify-cli@latest deploy \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --site "$NETLIFY_SITE_ID" \
+            --dir "." \
+            --alias "$BRANCH_ALIAS" \
+            --message "Branch deploy ${GITHUB_REF_NAME} $GITHUB_SHA"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
