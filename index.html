@@ -97,6 +97,10 @@ body {
     border-bottom: 1px solid #ddd;
 }
 
+body.categorias-carregando #categorias {
+    visibility: hidden;
+}
+
 .cat-btn {
     width: 170px;
     padding: 12px;
@@ -390,7 +394,7 @@ body {
 </style>
 </head>
 
-<body>
+<body class="categorias-carregando">
 
 <!-- ======== FAIXA AZUL ======== -->
 <section class="faixa-azul">
@@ -606,7 +610,7 @@ function atualizarCategoriasDisponiveis() {
     document.querySelectorAll(".cat-btn").forEach(btn => {
         const cat = btn.dataset.cat;
         if (cat === "todos") {
-            btn.style.display = "";
+            btn.style.display = categoriasComProdutos.size > 1 ? "" : "none";
             return;
         }
 
@@ -615,10 +619,15 @@ function atualizarCategoriasDisponiveis() {
 
     const ativo = document.querySelector(".cat-btn.ativo");
     if (ativo && ativo.style.display === "none") {
-        const todos = document.querySelector('.cat-btn[data-cat="todos"]');
-        todos.classList.add("ativo");
         ativo.classList.remove("ativo");
-        aplicarFiltro("todos");
+        const proximo =
+            document.querySelector('.cat-btn[data-cat="ele"]') ||
+            document.querySelector('.cat-btn:not([style*="display: none"])');
+
+        if (proximo) {
+            proximo.classList.add("ativo");
+            aplicarFiltro(proximo.dataset.cat);
+        }
     }
 }
 
@@ -633,6 +642,7 @@ document.querySelectorAll(".cat-btn").forEach(btn => {
 carregarProdutos().then(() => {
     atualizarCategoriasDisponiveis();
     aplicarFiltro("todos");
+    document.body.classList.remove("categorias-carregando");
 });
 </script>
 
