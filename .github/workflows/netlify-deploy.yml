@@ -19,13 +19,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare public files
+        run: |
+          mkdir -p _site
+          cp index.html fundo2.png logo.png produto*.jpg produto*.txt _site/
+          cp -R config _site/
+
       - name: Deploy production
         if: github.ref == 'refs/heads/main'
         run: |
           npx --yes netlify-cli@latest deploy \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --site "$NETLIFY_SITE_ID" \
-            --dir "." \
+            --dir "_site" \
             --prod \
             --message "Production deploy $GITHUB_SHA"
         env:
@@ -38,7 +44,7 @@ jobs:
           npx --yes netlify-cli@latest deploy \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --site "$NETLIFY_SITE_ID" \
-            --dir "." \
+            --dir "_site" \
             --alias "$BRANCH_ALIAS" \
             --message "Branch deploy ${GITHUB_REF_NAME} $GITHUB_SHA"
         env:
