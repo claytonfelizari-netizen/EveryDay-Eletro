@@ -1,0 +1,6 @@
+Categoria: arc
+Consumo: A
+GastoHora: 1,14
+Preco: 2499 
+Ar-condicionado Midea 12.000 BTUs 
+

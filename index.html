@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EveryDay-Eletro</title>
+
+<style>
+
+/* ======== BLOQUEAR MOVIMENTO LATERAL ======== */
+html, body {
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* ======== BASE GERAL ======== */
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+}
+
+/* ======== FAIXA AZUL DESKTOP ======== */
+.faixa-azul {
+    width: 100%;
+    background: #0D61A8;
+    color: white;
+    text-align: center;
+    padding: 20px 20px 25px 20px;
+    position: relative;
+}
+
+/* ======== LOGO DESKTOP ======== */
+.logo-bloco {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(6px);
+    border-radius: 14px;
+    text-align: center;
+}
+
+.logo {
+    width: 300px;
+    height: 105px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #14283d, #0d2134 60%, #193955);
+    color: white;
+    font-size: 31px;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.65);
+}
+
+.logo::before {
+    content: "";
+    position: absolute;
+    width: 170px;
+    height: 62px;
+    right: 24px;
+    top: 13px;
+    border-top: 12px solid #f15c2a;
+    border-radius: 50%;
+    transform: rotate(-13deg);
+}
+
+.logo::after {
+    content: "";
+    position: absolute;
+    width: 140px;
+    height: 52px;
+    left: 18px;
+    bottom: 5px;
+    border-bottom: 4px dotted #4aa3df;
+    border-radius: 50%;
+    transform: rotate(12deg);
+}
+
+.logo span {
+    position: relative;
+    z-index: 1;
+}
+
+.slogan {
+    font-size: 20px;
+    margin-top: 4px;
+    font-weight: bold;
+    white-space: nowrap;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+}
+
+/* ======== TEXTOS BANNER ======== */
+.info1 { font-size: 36px; font-weight: 900; }
+.info2 { font-size: 20px; font-weight: bold; }
+.info3 { font-size: 26px; font-weight: 900; }
+.info1, .info2, .info3 { margin-bottom: 10px; }
+
+/* ======== IMAGEM DE FUNDO ======== */
+.topo-img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+}
+
+/* ======== CATEGORIAS ======== */
+#categorias {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 10px;
+    background: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.cat-btn {
+    width: 170px;
+    padding: 12px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    border: 2px solid #dcdcdc;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.cat-btn.ativo {
+    background: #1E88E5;
+    color: white;
+    border-color: #1E88E5;
+}
+
+/* ======== PRODUTOS ======== */
+.produtos {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    background: white;
+}
+
+/* ======== CARD (MESMO LAYOUT) + FLIP ======== */
+.product-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: center;
+    position: relative;      /* flip */
+    cursor: pointer;         /* flip */
+    perspective: 1000px;     /* flip 3D */
+}
+
+.product-card-inner {
+    position: relative;
+}
+
+/* frente padrão */
+.product-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.product-title{
+    font-size: 18px;
+    font-weight: 900;
+    margin: 6px 0 8px 0;
+}
+
+.product-desc{
+    font-size: 14px;
+    line-height: 1.35em;
+}
+
+/* ✅ PREÇO NA FRENTE (AZUL) */
+.product-price {
+    margin-top: 8px;
+    font-size: 22px;
+    font-weight: 900;
+    color: #0D61A8; /* azul EveryDay-Eletro */
+}
+
+/* wrappers de frente e verso */
+.card-front {
+    transition: transform 0.6s, opacity 0.6s;
+    transform-origin: center;
+    backface-visibility: hidden;
+}
+
+.card-back {
+    position: absolute;
+    inset: 15px; /* respeita o padding do card */
+    border-radius: 12px;
+    background: white;
+    box-sizing: border-box;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden; /* bloqueado durante a virada */
+    transition: transform 0.6s, opacity 0.6s;
+}
+
+/* quando virado */
+.product-card.flipped .card-front {
+    transform: rotateY(180deg);
+    opacity: 0;
+}
+
+.product-card.flipped .card-back {
+    transform: rotateY(0deg);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* quando a animação terminar, JS coloca .scroll-on para liberar scroll */
+.card-back.scroll-on {
+    overflow-y: auto;
+}
+
+/* elementos do verso */
+.inmetro-img {
+    width: 100%;
+    max-width: 220px;
+    margin: 15px auto;
+    display: block;
+}
+
+.gasto-hora {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.aviso {
+    margin-top: 10px;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* ======== BOTÃO WHATSAPP ======== */
+.whats-float {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 999;
+    text-decoration: none !important;
+}
+
+.whats-float * {
+    text-decoration: none !important;
+    color: white !important;
+}
+
+.whats-btn {
+    padding: 13px 24px;
+    background: #25D366;
+    color: white;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none !important;
+}
+
+/* ======== RODAPÉ ======== */
+.rodape {
+    width: 100%;
+    background: #0D61A8;
+    color: white;
+    text-align: center;
+    padding: 25px 10px;
+    font-size: 15px;
+    margin-top: 40px;
+}
+.rodape p { margin: 6px 0; }
+
+/* ======== MOBILE ======== */
+@media (max-width: 767px) {
+
+    html, body, * {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    .faixa-azul {
+        min-height: 230px !important;
+        padding-top: 10px !important;
+        padding-bottom: 15px !important;
+    }
+
+    .logo-bloco {
+        position: relative !important;
+        top: 5px !important;
+        left: 0 !important;
+        width: fit-content !important;
+        margin: 0 auto 12px auto !important;
+        padding: 12px 14px !important;
+        max-width: 100% !important;
+    }
+
+    .logo {
+        width: min(340px, 90vw) !important;
+        height: 105px !important;
+    }
+
+    .slogan {
+        font-size: 20px !important;
+        margin-top: 4px !important;
+    }
+
+    .info1 { font-size: 26px !important; margin-top: 5px !important; }
+    .info2 { font-size: 12px !important; }
+    .info3 { font-size: 26px !important; }
+
+    .topo-img {
+        height: 190px !important;
+    }
+}
+
+/* ======== TABLET VERTICAL ======== */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+
+    html, body, * {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    .faixa-azul {
+        min-height: 300px !important;
+        padding-top: 12px !important;
+        padding-bottom: 20px !important;
+        text-align: center !important;
+    }
+
+    .logo-bloco {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 auto 10px auto !important;
+        padding: 14px !important;
+        background: rgba(0,0,0,0.35) !important;
+        width: fit-content !important;
+        max-width: 100% !important;
+        border-radius: 14px !important;
+        transform: none !important;
+    }
+
+    .logo {
+        width: min(740px, 92vw) !important;
+        height: 150px !important;
+    }
+
+    .slogan {
+        font-size: 30px !important;
+        margin-top: 6px !important;
+    }
+
+    .info1 { font-size: 30px !important; font-weight: 900 !important; }
+    .info2 { font-size: 18px !important; }
+    .info3 { font-size: 30px !important; }
+
+    .topo-img {
+        height: 220px !important;
+        object-fit: cover !important;
+    }
+}
+
+/* ======== LANDSCAPE CORREÇÃO LOGO ======== */
+@media (orientation: landscape) and (max-height: 500px) {
+    .logo-bloco {
+        top: -5px !important;
+        left: -5px !important;
+        padding: 8px 12px !important;
+        transform: scale(0.80);
+    }
+
+    .logo {
+        width: 230px !important;
+        height: 85px !important;
+    }
+
+    .slogan {
+        font-size: 13px !important;
+    }
+}
+
+/* ======== AJUSTE: aumentar texto info2 apenas no celular vertical ======== */
+@media only screen and (max-width: 480px) and (orientation: portrait) {
+    .info2 {
+        font-size: 16px !important;
+        line-height: 1.35em !important;
+        font-weight: bold !important;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ======== FAIXA AZUL ======== -->
+<section class="faixa-azul">
+    <div class="logo-bloco">
+        <div class="logo" aria-label="Logo EveryDay-Eletro"><span>EveryDay-Eletro</span></div>
+        <div class="slogan">Conforto para seu dia a dia</div>
+    </div>
+
+    <div class="info1">VENDA EM ATÉ 12X<br>NO CARTÃO</div>
+    <div class="info2">Entre em contato para o melhor preço do dia</div>
+    <div class="info3">PARA NÓS VOCÊ NÃO É SÓ UM CLICK</div>
+</section>
+
+<!-- ======== IMAGEM ======== -->
+<img src="fundo2.png" class="topo-img" alt="Ambiente climatizado">
+
+<!-- ======== CATEGORIAS ======== -->
+<div id="categorias">
+    <button class="cat-btn ativo" data-cat="todos">Todos</button>
+    <button class="cat-btn" data-cat="arc">Ar-condicionado</button>
+    <button class="cat-btn" data-cat="ven">Ventiladores</button>
+    <button class="cat-btn" data-cat="aqu">Aquecedores</button>
+    <button class="cat-btn" data-cat="cli">Climatizadores</button>
+    <button class="cat-btn" data-cat="pur">Purificadores</button>
+</div>
+
+<!-- ======== PRODUTOS ======== -->
+<section class="produtos" id="lista-produtos"></section>
+
+<!-- ======== WHATSAPP ======== -->
+<a class="whats-float" href="https://wa.me/5544991330110" target="_blank" rel="noopener noreferrer">
+    <div class="whats-btn">WhatsApp</div>
+</a>
+
+<!-- ======== RODAPÉ ======== -->
+<footer class="rodape">
+    <p><strong>EveryDay-Eletro</strong></p>
+    <p><span id="endereco-loja">Carregando endereço...</span></p>
+    <p>CNPJ: 63.280.662/0001-82</p>
+</footer>
+
+<script>
+/* ======== ENDEREÇO ======== */
+async function carregarEndereco() {
+    try {
+        const r = await fetch("config/endereco.txt");
+        if (!r.ok) return;
+        const texto = await r.text();
+        document.getElementById("endereco-loja").innerText = texto.trim();
+    } catch {
+        document.getElementById("endereco-loja").innerText = "Endereço não disponível";
+    }
+}
+carregarEndereco();
+
+/* ======== TXT ======== */
+async function carregarTexto(arquivo) {
+    try {
+        const r = await fetch(arquivo);
+        if (!r.ok) return "";
+        return await r.text();
+    } catch {
+        return "";
+    }
+}
+
+/* Lê:
+   Categoria: arc
+   Preço: 2590
+   Consumo: consumoA.png
+   GastoHora: 1,25
+   (resto) descrição
+*/
+function extrairDados(txt) {
+    const linhas = txt.split("\n").map(l => l.trim()).filter(Boolean);
+
+    let categoria = "outros";
+    let consumoImg = "";
+    let gastoHora = "";
+    let preco = "";
+    const desc = [];
+
+    for (const l of linhas) {
+        const low = l.toLowerCase();
+        if (low.startsWith("categoria:")) {
+            categoria = l.substring(10).trim().toLowerCase();
+        } else if (low.startsWith("preço:") || low.startsWith("preco:")) {
+            preco = l.substring(l.indexOf(":") + 1).trim();
+        } else if (low.startsWith("consumo:")) {
+            consumoImg = l.substring(8).trim();
+        } else if (low.startsWith("gastohora:")) {
+            gastoHora = l.substring(10).trim();
+        } else {
+            desc.push(l);
+        }
+    }
+
+    return {
+        categoria,
+        preco,
+        consumoImg,
+        gastoHora,
+        descHtml: desc.join("<br>")
+    };
+}
+
+/* formata preço pt-BR (aceita "2590", "2590,90", "2.590,90") */
+function formatarPrecoBR(valor) {
+    if (!valor) return "";
+    let v = String(valor).trim();
+    v = v.replace(/\s/g, "");
+    // remove "R$" se alguém colocar sem querer
+    v = v.replace(/r\$/ig, "");
+    // se vier "2.590,90" -> "2590.90"
+    v = v.replace(/\./g, "").replace(",", ".");
+    const num = Number(v);
+    if (!isFinite(num)) return "";
+    return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/* ======== PRODUTOS ======== */
+async function carregarProdutos() {
+    const cont = document.getElementById("lista-produtos");
+
+    for (let i = 1; i <= 200; i++) {
+        const img = `produto${i}.jpg`;
+        const txt = `produto${i}.txt`;
+
+        const okImg = await fetch(img).then(r => r.ok).catch(() => false);
+        const okTxt = await fetch(txt).then(r => r.ok).catch(() => false);
+        if (!okImg || !okTxt) continue;
+
+        const texto = await carregarTexto(txt);
+        const dados = extrairDados(texto);
+        const codigo = `P-${String(i).padStart(2,'0')}`;
+
+        const precoFmt = formatarPrecoBR(dados.preco);
+
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.dataset.cat = dados.categoria;
+
+        card.innerHTML = `
+            <div class="product-card-inner">
+                <div class="card-front">
+                    <img src="${img}" alt="Produto ${i}">
+                    <div class="product-desc">${dados.descHtml}</div>
+                    ${precoFmt ? `<div class="product-price">R$ ${precoFmt}</div>` : ""}
+                </div>
+                <div class="card-back">
+                    <div class="product-title">${codigo}</div>
+                    <div class="product-desc">${dados.descHtml}</div>
+                    ${dados.consumoImg ? `<img src="${dados.consumoImg}" alt="Etiqueta de consumo" class="inmetro-img">` : ""}
+                    ${dados.gastoHora ? `
+                        <div class="gasto-hora">
+                            Consumo estimado por hora: <strong>R$ ${dados.gastoHora}</strong>
+                        </div>
+                    ` : ""}
+                    <div class="aviso">
+                        * Valores estimados. Podem variar conforme uso, modelo e instalação.
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const backEl = card.querySelector(".card-back");
+
+        card.addEventListener("click", () => {
+            const virou = card.classList.toggle("flipped");
+
+            if (virou) {
+                backEl.classList.remove("scroll-on");
+                backEl.scrollTop = 0;
+                setTimeout(() => backEl.classList.add("scroll-on"), 400);
+            } else {
+                backEl.classList.remove("scroll-on");
+                backEl.scrollTop = 0;
+            }
+        });
+
+        cont.appendChild(card);
+    }
+}
+
+/* ======== FILTRO CATEGORIAS ======== */
+function aplicarFiltro(cat) {
+    document.querySelectorAll(".product-card").forEach(c => {
+        c.style.display = (cat === "todos" || c.dataset.cat === cat) ? "block" : "none";
+    });
+}
+
+document.querySelectorAll(".cat-btn").forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("ativo"));
+        btn.classList.add("ativo");
+        aplicarFiltro(btn.dataset.cat);
+    };
+});
+
+carregarProdutos().then(() => aplicarFiltro("todos"));
+</script>
+
+</body>
+</html>
