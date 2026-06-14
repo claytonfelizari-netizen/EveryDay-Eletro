@@ -1,8 +1,6 @@
 import ProductCatalog from "../components/ProductCatalog";
 import { getProducts, getStoreAddress } from "../lib/products";
 
-export const dynamic = "force-dynamic";
-
 export default function Home() {
   const products = getProducts();
   const address = getStoreAddress();
