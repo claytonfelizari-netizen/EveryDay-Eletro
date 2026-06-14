@@ -454,6 +454,7 @@ async function carregarTexto(arquivo) {
 }
 
 /* Lê:
+   Referencia: REF 001
    Categoria: arc
    Preço: 2590
    Consumo: consumoA.png
@@ -464,6 +465,7 @@ function extrairDados(txt) {
     const linhas = txt.split("\n").map(l => l.trim()).filter(Boolean);
 
     let categoria = "outros";
+    let referencia = "";
     let consumoImg = "";
     let gastoHora = "";
     let preco = "";
@@ -473,6 +475,8 @@ function extrairDados(txt) {
         const low = l.toLowerCase();
         if (low.startsWith("categoria:")) {
             categoria = l.substring(10).trim().toLowerCase();
+        } else if (low.startsWith("referencia:") || low.startsWith("referência:") || low.startsWith("ref:")) {
+            referencia = l.substring(l.indexOf(":") + 1).trim();
         } else if (low.startsWith("preço:") || low.startsWith("preco:")) {
             preco = l.substring(l.indexOf(":") + 1).trim();
         } else if (low.startsWith("consumo:")) {
@@ -486,6 +490,7 @@ function extrairDados(txt) {
 
     return {
         categoria,
+        referencia,
         preco,
         consumoImg,
         gastoHora,
@@ -521,7 +526,7 @@ async function carregarProdutos() {
 
         const texto = await carregarTexto(txt);
         const dados = extrairDados(texto);
-        const codigo = `P-${String(i).padStart(2,'0')}`;
+        const codigo = dados.referencia || `REF ${String(i).padStart(3,'0')}`;
 
         const precoFmt = formatarPrecoBR(dados.preco);
 
