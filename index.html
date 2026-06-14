@@ -172,6 +172,17 @@ body {
     color: #0D61A8; /* azul EveryDay-Eletro */
 }
 
+.product-price-pix {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0A7A3E;
+}
+
+.product-price-pix strong {
+    font-size: 16px;
+}
+
 /* wrappers de frente e verso */
 .card-front {
     transition: transform 0.6s, opacity 0.6s;
@@ -527,6 +538,14 @@ function formatarPrecoBR(valor) {
     return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function formatarPrecoPixBR(valor) {
+    if (!valor) return "";
+    const preco = Number(String(valor).replace(/\./g, "").replace(",", "."));
+    if (!isFinite(preco)) return "";
+    const pix = preco * 0.9;
+    return pix.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 /* ======== PRODUTOS ======== */
 async function carregarProdutos() {
     const cont = document.getElementById("lista-produtos");
@@ -546,6 +565,7 @@ async function carregarProdutos() {
         const codigo = dados.referencia || `REF ${String(i).padStart(3,'0')}`;
 
         const precoFmt = formatarPrecoBR(dados.preco);
+        const precoPixFmt = formatarPrecoPixBR(dados.preco);
 
         const card = document.createElement("div");
         card.className = "product-card";
@@ -557,6 +577,7 @@ async function carregarProdutos() {
                     <img src="${img}" alt="Produto ${i}">
                     <div class="product-desc">${dados.descHtml}</div>
                     ${precoFmt ? `<div class="product-price">R$ ${precoFmt}</div>` : ""}
+                    ${precoPixFmt ? `<div class="product-price-pix">No PIX: <strong>R$ ${precoPixFmt}</strong></div>` : ""}
                 </div>
                 <div class="card-back">
                     <div class="product-title">${codigo}</div>
