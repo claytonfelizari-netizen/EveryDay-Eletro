@@ -1,7 +1,8 @@
+Ativo: nao
 Referencia: REF 001
 Categoria: arc
 Consumo: A
 GastoHora: 1,14
-Preco: 2499 
+Preco: 2748,90
 Ar-condicionado Midea 12.000 BTUs 
 

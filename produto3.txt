@@ -1,3 +1,4 @@
+Ativo: nao
 Referencia: REF 003
 Categoria: pur
 Purificador de Ar

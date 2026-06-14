@@ -68,7 +68,13 @@ body {
 
 /* ======== TEXTOS BANNER ======== */
 .info1 { font-size: 36px; font-weight: 900; }
-.info2 { font-size: 20px; font-weight: bold; }
+.info2 {
+    font-size: 38px;
+    font-weight: 900;
+    color: #FFE45C;
+    line-height: 1.15em;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.28);
+}
 .info3 { font-size: 26px; font-weight: 900; }
 .info1, .info2, .info3 { margin-bottom: 10px; }
 
@@ -296,7 +302,7 @@ body {
     }
 
     .info1 { font-size: 26px !important; margin-top: 5px !important; }
-    .info2 { font-size: 12px !important; }
+    .info2 { font-size: 28px !important; }
     .info3 { font-size: 26px !important; }
 
     .topo-img {
@@ -344,7 +350,7 @@ body {
     }
 
     .info1 { font-size: 30px !important; font-weight: 900 !important; }
-    .info2 { font-size: 18px !important; }
+    .info2 { font-size: 32px !important; }
     .info3 { font-size: 30px !important; }
 
     .topo-img {
@@ -375,7 +381,7 @@ body {
 /* ======== AJUSTE: aumentar texto info2 apenas no celular vertical ======== */
 @media only screen and (max-width: 480px) and (orientation: portrait) {
     .info2 {
-        font-size: 16px !important;
+        font-size: 30px !important;
         line-height: 1.35em !important;
         font-weight: bold !important;
     }
@@ -395,7 +401,7 @@ body {
     </div>
 
     <div class="info1">VENDA EM ATÉ 12X<br>NO CARTÃO</div>
-    <div class="info2">Entre em contato para o melhor preço do dia</div>
+    <div class="info2">10% DESCONTO NO PIX</div>
     <div class="info3">PARA NÓS VOCÊ NÃO É SÓ UM CLICK</div>
 </section>
 
@@ -417,7 +423,7 @@ body {
 <section class="produtos" id="lista-produtos"></section>
 
 <!-- ======== WHATSAPP ======== -->
-<a class="whats-float" href="https://wa.me/5544991330110" target="_blank" rel="noopener noreferrer">
+<a class="whats-float" href="https://wa.me/5544998514184" target="_blank" rel="noopener noreferrer">
     <div class="whats-btn">WhatsApp</div>
 </a>
 
@@ -432,7 +438,7 @@ body {
 /* ======== ENDEREÇO ======== */
 async function carregarEndereco() {
     try {
-        const r = await fetch("config/endereco.txt");
+        const r = await fetch("config/endereco.txt", { cache: "no-store" });
         if (!r.ok) return;
         const texto = await r.text();
         document.getElementById("endereco-loja").innerText = texto.trim();
@@ -445,7 +451,7 @@ carregarEndereco();
 /* ======== TXT ======== */
 async function carregarTexto(arquivo) {
     try {
-        const r = await fetch(arquivo);
+        const r = await fetch(arquivo, { cache: "no-store" });
         if (!r.ok) return "";
         return await r.text();
     } catch {
@@ -469,6 +475,7 @@ function extrairDados(txt) {
     let consumoImg = "";
     let gastoHora = "";
     let preco = "";
+    let ativo = true;
     const desc = [];
 
     for (const l of linhas) {
@@ -479,6 +486,9 @@ function extrairDados(txt) {
             referencia = l.substring(l.indexOf(":") + 1).trim();
         } else if (low.startsWith("preço:") || low.startsWith("preco:")) {
             preco = l.substring(l.indexOf(":") + 1).trim();
+        } else if (low.startsWith("ativo:")) {
+            const valor = l.substring(l.indexOf(":") + 1).trim().toLowerCase();
+            ativo = !["nao", "não", "no", "false", "0"].includes(valor);
         } else if (low.startsWith("consumo:")) {
             consumoImg = l.substring(8).trim();
         } else if (low.startsWith("gastohora:")) {
@@ -492,6 +502,7 @@ function extrairDados(txt) {
         categoria,
         referencia,
         preco,
+        ativo,
         consumoImg,
         gastoHora,
         descHtml: desc.join("<br>")
@@ -521,11 +532,13 @@ async function carregarProdutos() {
         const txt = `produto${i}.txt`;
 
         const okImg = await fetch(img).then(r => r.ok).catch(() => false);
-        const okTxt = await fetch(txt).then(r => r.ok).catch(() => false);
+        const okTxt = await fetch(txt, { cache: "no-store" }).then(r => r.ok).catch(() => false);
         if (!okImg || !okTxt) continue;
 
         const texto = await carregarTexto(txt);
         const dados = extrairDados(texto);
+        if (!dados.ativo) continue;
+
         const codigo = dados.referencia || `REF ${String(i).padStart(3,'0')}`;
 
         const precoFmt = formatarPrecoBR(dados.preco);
@@ -550,9 +563,11 @@ async function carregarProdutos() {
                             Consumo estimado por hora: <strong>R$ ${dados.gastoHora}</strong>
                         </div>
                     ` : ""}
-                    <div class="aviso">
-                        * Valores estimados. Podem variar conforme uso, modelo e instalação.
-                    </div>
+                    ${dados.categoria !== "ele" ? `
+                        <div class="aviso">
+                            * Valores estimados. Podem variar conforme uso, modelo e instalação.
+                        </div>
+                    ` : ""}
                 </div>
             </div>
         `;
@@ -583,6 +598,30 @@ function aplicarFiltro(cat) {
     });
 }
 
+function atualizarCategoriasDisponiveis() {
+    const categoriasComProdutos = new Set(
+        [...document.querySelectorAll(".product-card")].map(card => card.dataset.cat)
+    );
+
+    document.querySelectorAll(".cat-btn").forEach(btn => {
+        const cat = btn.dataset.cat;
+        if (cat === "todos") {
+            btn.style.display = "";
+            return;
+        }
+
+        btn.style.display = categoriasComProdutos.has(cat) ? "" : "none";
+    });
+
+    const ativo = document.querySelector(".cat-btn.ativo");
+    if (ativo && ativo.style.display === "none") {
+        const todos = document.querySelector('.cat-btn[data-cat="todos"]');
+        todos.classList.add("ativo");
+        ativo.classList.remove("ativo");
+        aplicarFiltro("todos");
+    }
+}
+
 document.querySelectorAll(".cat-btn").forEach(btn => {
     btn.onclick = () => {
         document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("ativo"));
@@ -591,7 +630,10 @@ document.querySelectorAll(".cat-btn").forEach(btn => {
     };
 });
 
-carregarProdutos().then(() => aplicarFiltro("todos"));
+carregarProdutos().then(() => {
+    atualizarCategoriasDisponiveis();
+    aplicarFiltro("todos");
+});
 </script>
 
 </body>
