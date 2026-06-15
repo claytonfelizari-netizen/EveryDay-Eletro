@@ -27,25 +27,29 @@ body {
     background: #0D61A8;
     color: white;
     text-align: center;
-    padding: 20px 20px 25px 20px;
+    padding: 12px clamp(24px, 5vw, 72px);
     position: relative;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
 }
 
 /* ======== LOGO DESKTOP ======== */
 .logo-bloco {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    padding: 8px;
+    position: static;
+    padding: 6px;
     background: white;
     border-radius: 10px;
     text-align: center;
-    box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+    flex: 0 0 auto;
 }
 
 .logo {
-    width: 350px;
-    height: 135px;
+    width: clamp(230px, 23vw, 330px);
+    height: 82px;
     position: relative;
     overflow: hidden;
     border-radius: 6px;
@@ -58,7 +62,7 @@ body {
     display: block;
     object-fit: cover;
     object-position: center;
-    transform: scale(1.25);
+    transform: scale(1.18);
     transform-origin: center;
 }
 
@@ -69,20 +73,30 @@ body {
 /* ======== TEXTOS BANNER ======== */
 .info1 { font-size: 36px; font-weight: 900; }
 .info2 {
-    font-size: 38px;
+    font-size: clamp(30px, 3.1vw, 50px);
     font-weight: 900;
     color: #FFE45C;
     line-height: 1.15em;
     text-shadow: 0 2px 6px rgba(0,0,0,0.28);
+    flex: 1;
+    margin: 0;
+    text-align: right;
 }
 .info3 { font-size: 26px; font-weight: 900; }
 .info1, .info2, .info3 { margin-bottom: 10px; }
 
+@media (min-width: 1025px) {
+    .faixa-azul {
+        min-height: 112px;
+    }
+}
+
 /* ======== IMAGEM DE FUNDO ======== */
 .topo-img {
     width: 100%;
-    height: 300px;
+    height: clamp(320px, 26vw, 430px);
     object-fit: cover;
+    object-position: center 58%;
     display: block;
 }
 
@@ -294,6 +308,9 @@ body {
         min-height: 230px !important;
         padding-top: 10px !important;
         padding-bottom: 15px !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 0 !important;
     }
 
     .logo-bloco {
@@ -301,7 +318,7 @@ body {
         top: 5px !important;
         left: 0 !important;
         width: fit-content !important;
-        margin: 0 auto 12px auto !important;
+        margin: 0 auto 28px auto !important;
         padding: 12px 14px !important;
         max-width: 100% !important;
     }
@@ -317,7 +334,7 @@ body {
     }
 
     .info1 { font-size: 26px !important; margin-top: 5px !important; }
-    .info2 { font-size: 28px !important; }
+    .info2 { font-size: 28px !important; text-align: center !important; }
     .info3 { font-size: 26px !important; }
 
     .topo-img {
@@ -339,13 +356,16 @@ body {
         padding-top: 12px !important;
         padding-bottom: 20px !important;
         text-align: center !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 0 !important;
     }
 
     .logo-bloco {
         position: relative !important;
         top: 0 !important;
         left: 0 !important;
-        margin: 0 auto 10px auto !important;
+        margin: 0 auto 28px auto !important;
         padding: 14px !important;
         background: rgba(0,0,0,0.35) !important;
         width: fit-content !important;
@@ -365,7 +385,7 @@ body {
     }
 
     .info1 { font-size: 30px !important; font-weight: 900 !important; }
-    .info2 { font-size: 32px !important; }
+    .info2 { font-size: 32px !important; text-align: center !important; }
     .info3 { font-size: 30px !important; }
 
     .topo-img {
@@ -415,9 +435,7 @@ body {
         </div>
     </div>
 
-    <div class="info1">VENDA EM ATÉ 12X<br>NO CARTÃO</div>
     <div class="info2">10% DESCONTO NO PIX</div>
-    <div class="info3">PARA NÓS VOCÊ NÃO É SÓ UM CLICK</div>
 </section>
 
 <!-- ======== IMAGEM ======== -->
@@ -466,7 +484,7 @@ carregarEndereco();
 /* ======== TXT ======== */
 async function carregarTexto(arquivo) {
     try {
-        const r = await fetch(arquivo, { cache: "no-store" });
+        const r = await fetch(arquivo);
         if (!r.ok) return "";
         return await r.text();
     } catch {
@@ -547,73 +565,109 @@ function formatarPrecoPixBR(valor) {
 }
 
 /* ======== PRODUTOS ======== */
+const LIMITE_PRODUTOS = 200;
+
+async function carregarListaProdutos() {
+    try {
+        const r = await fetch("produtos.json");
+        if (!r.ok) throw new Error("Lista de produtos indisponivel");
+
+        const lista = await r.json();
+        if (!Array.isArray(lista)) throw new Error("Lista de produtos invalida");
+
+        return lista
+            .map(n => Number(n))
+            .filter(n => Number.isInteger(n) && n > 0);
+    } catch {
+        return Array.from({ length: LIMITE_PRODUTOS }, (_, i) => i + 1);
+    }
+}
+
+async function imagemExiste(arquivo) {
+    try {
+        const r = await fetch(arquivo, { method: "HEAD" });
+        return r.ok;
+    } catch {
+        return false;
+    }
+}
+
+async function carregarProduto(i) {
+    const img = `produto${i}.jpg`;
+    const txt = `produto${i}.txt`;
+
+    const texto = await carregarTexto(txt);
+    if (!texto) return null;
+
+    const dados = extrairDados(texto);
+    if (!dados.ativo) return null;
+
+    const okImg = await imagemExiste(img);
+    if (!okImg) return null;
+
+    const codigo = dados.referencia || `REF ${String(i).padStart(3,'0')}`;
+
+    const precoFmt = formatarPrecoBR(dados.preco);
+    const precoPixFmt = formatarPrecoPixBR(dados.preco);
+
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.dataset.cat = dados.categoria;
+
+    card.innerHTML = `
+        <div class="product-card-inner">
+            <div class="card-front">
+                <img src="${img}" alt="Produto ${i}">
+                <div class="product-desc">${dados.descHtml}</div>
+                ${precoFmt ? `<div class="product-price">R$ ${precoFmt}</div>` : ""}
+                ${precoPixFmt ? `<div class="product-price-pix">No PIX: <strong>R$ ${precoPixFmt}</strong></div>` : ""}
+            </div>
+            <div class="card-back">
+                <div class="product-title">${codigo}</div>
+                <div class="product-desc">${dados.descHtml}</div>
+                ${dados.consumoImg ? `<img src="${dados.consumoImg}" alt="Etiqueta de consumo" class="inmetro-img">` : ""}
+                ${dados.gastoHora ? `
+                    <div class="gasto-hora">
+                        Consumo estimado por hora: <strong>R$ ${dados.gastoHora}</strong>
+                    </div>
+                ` : ""}
+                ${dados.categoria !== "ele" ? `
+                    <div class="aviso">
+                        * Valores estimados. Podem variar conforme uso, modelo e instalação.
+                    </div>
+                ` : ""}
+            </div>
+        </div>
+    `;
+
+    const backEl = card.querySelector(".card-back");
+
+    card.addEventListener("click", () => {
+        const virou = card.classList.toggle("flipped");
+
+        if (virou) {
+            backEl.classList.remove("scroll-on");
+            backEl.scrollTop = 0;
+            setTimeout(() => backEl.classList.add("scroll-on"), 400);
+        } else {
+            backEl.classList.remove("scroll-on");
+            backEl.scrollTop = 0;
+        }
+    });
+
+    return card;
+}
+
 async function carregarProdutos() {
     const cont = document.getElementById("lista-produtos");
+    const listaProdutos = await carregarListaProdutos();
+    const produtos = await Promise.all(
+        listaProdutos.map(i => carregarProduto(i))
+    );
+    const fragment = document.createDocumentFragment();
 
-    for (let i = 1; i <= 200; i++) {
-        const img = `produto${i}.jpg`;
-        const txt = `produto${i}.txt`;
-
-        const okImg = await fetch(img).then(r => r.ok).catch(() => false);
-        const okTxt = await fetch(txt, { cache: "no-store" }).then(r => r.ok).catch(() => false);
-        if (!okImg || !okTxt) continue;
-
-        const texto = await carregarTexto(txt);
-        const dados = extrairDados(texto);
-        if (!dados.ativo) continue;
-
-        const codigo = dados.referencia || `REF ${String(i).padStart(3,'0')}`;
-
-        const precoFmt = formatarPrecoBR(dados.preco);
-        const precoPixFmt = formatarPrecoPixBR(dados.preco);
-
-        const card = document.createElement("div");
-        card.className = "product-card";
-        card.dataset.cat = dados.categoria;
-
-        card.innerHTML = `
-            <div class="product-card-inner">
-                <div class="card-front">
-                    <img src="${img}" alt="Produto ${i}">
-                    <div class="product-desc">${dados.descHtml}</div>
-                    ${precoFmt ? `<div class="product-price">R$ ${precoFmt}</div>` : ""}
-                    ${precoPixFmt ? `<div class="product-price-pix">No PIX: <strong>R$ ${precoPixFmt}</strong></div>` : ""}
-                </div>
-                <div class="card-back">
-                    <div class="product-title">${codigo}</div>
-                    <div class="product-desc">${dados.descHtml}</div>
-                    ${dados.consumoImg ? `<img src="${dados.consumoImg}" alt="Etiqueta de consumo" class="inmetro-img">` : ""}
-                    ${dados.gastoHora ? `
-                        <div class="gasto-hora">
-                            Consumo estimado por hora: <strong>R$ ${dados.gastoHora}</strong>
-                        </div>
-                    ` : ""}
-                    ${dados.categoria !== "ele" ? `
-                        <div class="aviso">
-                            * Valores estimados. Podem variar conforme uso, modelo e instalação.
-                        </div>
-                    ` : ""}
-                </div>
-            </div>
-        `;
-
-        const backEl = card.querySelector(".card-back");
-
-        card.addEventListener("click", () => {
-            const virou = card.classList.toggle("flipped");
-
-            if (virou) {
-                backEl.classList.remove("scroll-on");
-                backEl.scrollTop = 0;
-                setTimeout(() => backEl.classList.add("scroll-on"), 400);
-            } else {
-                backEl.classList.remove("scroll-on");
-                backEl.scrollTop = 0;
-            }
-        });
-
-        cont.appendChild(card);
-    }
+    produtos.filter(Boolean).forEach(card => fragment.appendChild(card));
+    cont.appendChild(fragment);
 }
 
 /* ======== FILTRO CATEGORIAS ======== */
