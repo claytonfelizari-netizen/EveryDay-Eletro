@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+const PROMOTION_PERCENTAGE = 10;
+
 const categories = [
   { code: "todos", label: "Todos" },
   { code: "arc", label: "Ar-condicionado" },
@@ -54,13 +56,15 @@ function ProductCard({ product, visible }) {
           <div className="product-desc">
             <ProductDescription lines={product.description} />
           </div>
-          {product.price ? (
-            <div className="product-price">R$ {product.price}</div>
-          ) : null}
-          {product.pixPrice ? (
-            <div className="product-price-pix">
-              No PIX: <strong>R$ {product.pixPrice}</strong>
-            </div>
+          {product.price && product.promotionalPrice ? (
+            <>
+              <div className="product-promo-badge">
+                {PROMOTION_PERCENTAGE}% OFF
+              </div>
+              <div className="product-price-original">R$ {product.price}</div>
+              <div className="product-price">R$ {product.promotionalPrice}</div>
+              <div className="product-price-pix">Promoção por tempo limitado</div>
+            </>
           ) : null}
         </div>
 

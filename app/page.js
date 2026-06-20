@@ -17,13 +17,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="info1">
-          VENDA EM ATÉ 12X
-          <br />
-          NO CARTÃO
-        </div>
         <div className="info2">10% DESCONTO NO PIX</div>
-        <div className="info3">PARA NÓS VOCÊ NÃO É SÓ UM CLICK</div>
       </section>
 
       <img
