@@ -1,0 +1,7 @@
+.next/
+.netlify/
+node_modules/
+.codex-tools/
+out/
+public/
+.env*.local

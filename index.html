@@ -178,9 +178,28 @@ body {
     line-height: 1.35em;
 }
 
-/* ✅ PREÇO NA FRENTE (AZUL) */
-.product-price {
+.product-promo-badge {
+    display: inline-block;
     margin-top: 8px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #FFD33D;
+    color: #1B1B1B;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.product-price-original {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #777;
+    text-decoration: line-through;
+}
+
+/* PREÇO NA FRENTE (AZUL) */
+.product-price {
+    margin-top: 4px;
     font-size: 22px;
     font-weight: 900;
     color: #0D61A8; /* azul EveryDay-Eletro */
@@ -542,8 +561,10 @@ function extrairDados(txt) {
     };
 }
 
-/* formata preço pt-BR (aceita "2590", "2590,90", "2.590,90") */
-function formatarPrecoBR(valor) {
+const PROMOCAO_PERCENTUAL = 10;
+
+/* le preço pt-BR (aceita "2590", "2590,90", "2.590,90") */
+function lerPreco(valor) {
     if (!valor) return "";
     let v = String(valor).trim();
     v = v.replace(/\s/g, "");
@@ -552,16 +573,31 @@ function formatarPrecoBR(valor) {
     // se vier "2.590,90" -> "2590.90"
     v = v.replace(/\./g, "").replace(",", ".");
     const num = Number(v);
-    if (!isFinite(num)) return "";
+    if (!isFinite(num)) return null;
+    return num;
+}
+
+function formatarMoedaBR(valor) {
+    if (!isFinite(valor)) return "";
+    return valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function aplicarPromocao(valor) {
+    const preco = lerPreco(valor);
+    if (preco === null) return null;
+    return preco * (1 - PROMOCAO_PERCENTUAL / 100);
+}
+
+function formatarPrecoBR(valor) {
+    const num = lerPreco(valor);
+    if (num === null) return "";
     return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function formatarPrecoPixBR(valor) {
-    if (!valor) return "";
-    const preco = Number(String(valor).replace(/\./g, "").replace(",", "."));
-    if (!isFinite(preco)) return "";
-    const pix = preco * 0.9;
-    return pix.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function formatarPrecoPromocionalBR(valor) {
+    const precoPromocional = aplicarPromocao(valor);
+    if (precoPromocional === null) return "";
+    return formatarMoedaBR(precoPromocional);
 }
 
 /* ======== PRODUTOS ======== */
@@ -608,7 +644,7 @@ async function carregarProduto(i) {
     const codigo = dados.referencia || `REF ${String(i).padStart(3,'0')}`;
 
     const precoFmt = formatarPrecoBR(dados.preco);
-    const precoPixFmt = formatarPrecoPixBR(dados.preco);
+    const precoPromocionalFmt = formatarPrecoPromocionalBR(dados.preco);
 
     const card = document.createElement("div");
     card.className = "product-card";
@@ -619,8 +655,12 @@ async function carregarProduto(i) {
             <div class="card-front">
                 <img src="${img}" alt="Produto ${i}">
                 <div class="product-desc">${dados.descHtml}</div>
-                ${precoFmt ? `<div class="product-price">R$ ${precoFmt}</div>` : ""}
-                ${precoPixFmt ? `<div class="product-price-pix">No PIX: <strong>R$ ${precoPixFmt}</strong></div>` : ""}
+                ${precoFmt && precoPromocionalFmt ? `
+                    <div class="product-promo-badge">${PROMOCAO_PERCENTUAL}% OFF</div>
+                    <div class="product-price-original">R$ ${precoFmt}</div>
+                    <div class="product-price">R$ ${precoPromocionalFmt}</div>
+                    <div class="product-price-pix">Promoção por tempo limitado</div>
+                ` : ""}
             </div>
             <div class="card-back">
                 <div class="product-title">${codigo}</div>
