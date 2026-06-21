@@ -216,6 +216,26 @@ body {
     font-size: 16px;
 }
 
+.promotion-countdown {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 7px 10px;
+    border: 1px solid #FFD33D;
+    border-radius: 8px;
+    background: #FFF8D6;
+    color: #1B1B1B;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.promotion-countdown strong {
+    color: #0D61A8;
+    font-variant-numeric: tabular-nums;
+}
+
 /* wrappers de frente e verso */
 .card-front {
     transition: transform 0.6s, opacity 0.6s;
@@ -454,7 +474,7 @@ body {
         </div>
     </div>
 
-    <div class="info2">10% DESCONTO NO PIX</div>
+    <div class="info2">10% OFF EM PRODUTOS SELECIONADOS</div>
 </section>
 
 <!-- ======== IMAGEM ======== -->
@@ -562,6 +582,10 @@ function extrairDados(txt) {
 }
 
 const PROMOCAO_PERCENTUAL = 10;
+const PRODUTO_PROMOCIONAL_INICIAL = 17;
+const DURACAO_PROMOCAO_MS = 24 * 60 * 60 * 1000;
+const CHAVE_FIM_PROMOCAO = "everyday-eletro-promocao-fim";
+const CHAVE_PRODUTO_PROMOCAO = "everyday-eletro-promocao-produto";
 
 /* le preço pt-BR (aceita "2590", "2590,90", "2.590,90") */
 function lerPreco(valor) {
@@ -598,6 +622,105 @@ function formatarPrecoPromocionalBR(valor) {
     const precoPromocional = aplicarPromocao(valor);
     if (precoPromocional === null) return "";
     return formatarMoedaBR(precoPromocional);
+}
+
+function formatarContadorPromocao(ms) {
+    const totalSegundos = Math.max(0, Math.floor(ms / 1000));
+    const horas = String(Math.floor(totalSegundos / 3600)).padStart(2, "0");
+    const minutos = String(Math.floor((totalSegundos % 3600) / 60)).padStart(2, "0");
+    const segundos = String(totalSegundos % 60).padStart(2, "0");
+    return `${horas}:${minutos}:${segundos}`;
+}
+
+function idsProdutosCarregados() {
+    return [...document.querySelectorAll(".product-card")]
+        .map(card => Number(card.dataset.productId))
+        .filter(id => Number.isInteger(id));
+}
+
+function produtoPromocionalInicial(ids) {
+    return ids.includes(PRODUTO_PROMOCIONAL_INICIAL)
+        ? PRODUTO_PROMOCIONAL_INICIAL
+        : ids[0];
+}
+
+function proximoProdutoPromocional(ids, atual) {
+    const indiceAtual = ids.indexOf(atual);
+    return ids[(indiceAtual + 1) % ids.length];
+}
+
+function salvarPromocao(produtoId, fim) {
+    localStorage.setItem(CHAVE_PRODUTO_PROMOCAO, String(produtoId));
+    localStorage.setItem(CHAVE_FIM_PROMOCAO, String(fim));
+}
+
+function obterPromocaoAtual(ids) {
+    const salvoProduto = Number(localStorage.getItem(CHAVE_PRODUTO_PROMOCAO));
+    const salvoFim = Number(localStorage.getItem(CHAVE_FIM_PROMOCAO));
+    let produtoId = ids.includes(salvoProduto)
+        ? salvoProduto
+        : produtoPromocionalInicial(ids);
+    let fim = isFinite(salvoFim) && salvoFim > Date.now()
+        ? salvoFim
+        : Date.now() + DURACAO_PROMOCAO_MS;
+
+    if (isFinite(salvoFim) && salvoFim <= Date.now() && ids.includes(produtoId)) {
+        produtoId = proximoProdutoPromocional(ids, produtoId);
+        fim = Date.now() + DURACAO_PROMOCAO_MS;
+    }
+
+    salvarPromocao(produtoId, fim);
+    return { produtoId, fim };
+}
+
+function renderizarOfertas(produtoPromocionalId) {
+    document.querySelectorAll(".product-card").forEach(card => {
+        const areaOferta = card.querySelector(".product-offer");
+        if (!areaOferta) return;
+
+        if (Number(card.dataset.productId) === produtoPromocionalId && card.dataset.promoPrice) {
+            areaOferta.innerHTML = `
+                <div class="product-promo-badge">${PROMOCAO_PERCENTUAL}% OFF</div>
+                <div class="product-price-original">R$ ${card.dataset.price}</div>
+                <div class="product-price">R$ ${card.dataset.promoPrice}</div>
+                <div class="product-price-pix">Promoção por tempo limitado</div>
+                <div class="promotion-countdown">Termina em <strong data-promotion-countdown>24:00:00</strong></div>
+            `;
+        } else if (card.dataset.price) {
+            areaOferta.innerHTML = `<div class="product-price">R$ ${card.dataset.price}</div>`;
+        } else {
+            areaOferta.innerHTML = "";
+        }
+    });
+}
+
+function iniciarContadorPromocao() {
+    const ids = idsProdutosCarregados();
+    if (!ids.length) return;
+    let promocao = obterPromocaoAtual(ids);
+    renderizarOfertas(promocao.produtoId);
+
+    function atualizar() {
+        let restante = Math.max(0, promocao.fim - Date.now());
+
+        if (restante <= 0) {
+            promocao = {
+                produtoId: proximoProdutoPromocional(ids, promocao.produtoId),
+                fim: Date.now() + DURACAO_PROMOCAO_MS
+            };
+            salvarPromocao(promocao.produtoId, promocao.fim);
+            renderizarOfertas(promocao.produtoId);
+            restante = DURACAO_PROMOCAO_MS;
+        }
+
+        const contadores = document.querySelectorAll("[data-promotion-countdown]");
+        contadores.forEach(contador => {
+            contador.textContent = formatarContadorPromocao(restante);
+        });
+    }
+
+    atualizar();
+    setInterval(atualizar, 1000);
 }
 
 /* ======== PRODUTOS ======== */
@@ -649,18 +772,18 @@ async function carregarProduto(i) {
     const card = document.createElement("div");
     card.className = "product-card";
     card.dataset.cat = dados.categoria;
+    card.dataset.productId = String(i);
+    card.dataset.price = precoFmt;
+    card.dataset.promoPrice = precoPromocionalFmt;
 
     card.innerHTML = `
         <div class="product-card-inner">
             <div class="card-front">
                 <img src="${img}" alt="Produto ${i}">
                 <div class="product-desc">${dados.descHtml}</div>
-                ${precoFmt && precoPromocionalFmt ? `
-                    <div class="product-promo-badge">${PROMOCAO_PERCENTUAL}% OFF</div>
-                    <div class="product-price-original">R$ ${precoFmt}</div>
-                    <div class="product-price">R$ ${precoPromocionalFmt}</div>
-                    <div class="product-price-pix">Promoção por tempo limitado</div>
-                ` : ""}
+                <div class="product-offer">
+                    ${precoFmt ? `<div class="product-price">R$ ${precoFmt}</div>` : ""}
+                </div>
             </div>
             <div class="card-back">
                 <div class="product-title">${codigo}</div>
@@ -708,6 +831,7 @@ async function carregarProdutos() {
 
     produtos.filter(Boolean).forEach(card => fragment.appendChild(card));
     cont.appendChild(fragment);
+    iniciarContadorPromocao();
 }
 
 /* ======== FILTRO CATEGORIAS ======== */

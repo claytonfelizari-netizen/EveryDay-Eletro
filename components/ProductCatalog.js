@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const PROMOTION_PERCENTAGE = 10;
+const PROMOTION_DURATION_MS = 24 * 60 * 60 * 1000;
+const INITIAL_PROMOTIONAL_PRODUCT_ID = 17;
+const PROMOTION_DEADLINE_KEY = "everyday-eletro-promocao-fim";
+const PROMOTION_PRODUCT_KEY = "everyday-eletro-promocao-produto";
 
 const categories = [
   { code: "todos", label: "Todos" },
@@ -27,7 +31,24 @@ function ProductDescription({ lines }) {
   );
 }
 
-function ProductCard({ product, visible }) {
+function formatCountdown(milliseconds) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+function PromotionCountdown({ remaining }) {
+  return (
+    <div className="promotion-countdown">
+      Termina em <strong>{formatCountdown(remaining)}</strong>
+    </div>
+  );
+}
+
+function ProductCard({ isPromotional, product, remaining, visible }) {
   const [flipped, setFlipped] = useState(false);
   const [scrollEnabled, setScrollEnabled] = useState(false);
 
@@ -56,7 +77,7 @@ function ProductCard({ product, visible }) {
           <div className="product-desc">
             <ProductDescription lines={product.description} />
           </div>
-          {product.price && product.promotionalPrice ? (
+          {isPromotional && product.price && product.promotionalPrice ? (
             <>
               <div className="product-promo-badge">
                 {PROMOTION_PERCENTAGE}% OFF
@@ -64,7 +85,10 @@ function ProductCard({ product, visible }) {
               <div className="product-price-original">R$ {product.price}</div>
               <div className="product-price">R$ {product.promotionalPrice}</div>
               <div className="product-price-pix">Promoção por tempo limitado</div>
+              <PromotionCountdown remaining={remaining} />
             </>
+          ) : product.price ? (
+            <div className="product-price">R$ {product.price}</div>
           ) : null}
         </div>
 
@@ -98,6 +122,10 @@ function ProductCard({ product, visible }) {
 }
 
 export default function ProductCatalog({ products }) {
+  const productIds = useMemo(() => products.map((product) => product.id), [products]);
+  const fallbackPromotionalProductId = productIds.includes(INITIAL_PROMOTIONAL_PRODUCT_ID)
+    ? INITIAL_PROMOTIONAL_PRODUCT_ID
+    : productIds[0];
   const availableCategories = useMemo(
     () => new Set(products.map((product) => product.category)),
     [products]
@@ -107,6 +135,69 @@ export default function ProductCatalog({ products }) {
     : categories.find((category) => availableCategories.has(category.code))?.code ||
       "todos";
   const [activeCategory, setActiveCategory] = useState(initialCategory);
+  const [activePromotionalProductId, setActivePromotionalProductId] = useState(
+    fallbackPromotionalProductId
+  );
+  const [promotionDeadline, setPromotionDeadline] = useState(
+    Date.now() + PROMOTION_DURATION_MS
+  );
+  const [remaining, setRemaining] = useState(PROMOTION_DURATION_MS);
+
+  useEffect(() => {
+    if (!productIds.length) return;
+
+    const storedProductId = Number(window.localStorage.getItem(PROMOTION_PRODUCT_KEY));
+    let initialProductId = productIds.includes(storedProductId)
+      ? storedProductId
+      : fallbackPromotionalProductId;
+    const storedDeadline = Number(window.localStorage.getItem(PROMOTION_DEADLINE_KEY));
+    const deadlineExpired = Number.isFinite(storedDeadline) && storedDeadline <= Date.now();
+    const initialDeadline = Number.isFinite(storedDeadline) && storedDeadline > Date.now()
+      ? storedDeadline
+      : Date.now() + PROMOTION_DURATION_MS;
+
+    if (deadlineExpired) {
+      const currentIndex = productIds.indexOf(initialProductId);
+      initialProductId = productIds[(currentIndex + 1) % productIds.length];
+    }
+
+    setActivePromotionalProductId(initialProductId);
+    setPromotionDeadline(initialDeadline);
+    window.localStorage.setItem(PROMOTION_PRODUCT_KEY, String(initialProductId));
+    window.localStorage.setItem(PROMOTION_DEADLINE_KEY, String(initialDeadline));
+  }, [fallbackPromotionalProductId, productIds]);
+
+  useEffect(() => {
+    if (!productIds.length) return undefined;
+
+    function rotatePromotion() {
+      setActivePromotionalProductId((currentProductId) => {
+        const currentIndex = productIds.indexOf(currentProductId);
+        const nextProductId = productIds[(currentIndex + 1) % productIds.length];
+        window.localStorage.setItem(PROMOTION_PRODUCT_KEY, String(nextProductId));
+        return nextProductId;
+      });
+
+      const nextDeadline = Date.now() + PROMOTION_DURATION_MS;
+      setPromotionDeadline(nextDeadline);
+      setRemaining(PROMOTION_DURATION_MS);
+      window.localStorage.setItem(PROMOTION_DEADLINE_KEY, String(nextDeadline));
+    }
+
+    function updateRemaining() {
+      const nextRemaining = Math.max(0, promotionDeadline - Date.now());
+      setRemaining(nextRemaining);
+
+      if (nextRemaining <= 0) {
+        rotatePromotion();
+      }
+    }
+
+    updateRemaining();
+    const timer = window.setInterval(updateRemaining, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [productIds, promotionDeadline]);
 
   return (
     <>
@@ -137,8 +228,10 @@ export default function ProductCatalog({ products }) {
       <section className="produtos" id="lista-produtos">
         {products.map((product) => (
           <ProductCard
+            isPromotional={product.id === activePromotionalProductId}
             key={product.id}
             product={product}
+            remaining={remaining}
             visible={
               activeCategory === "todos" || product.category === activeCategory
             }

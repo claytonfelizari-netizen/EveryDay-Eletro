@@ -200,6 +200,26 @@ body {
   font-size: 16px;
 }
 
+.promotion-countdown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 7px 10px;
+  border: 1px solid #ffd33d;
+  border-radius: 8px;
+  background: #fff8d6;
+  color: #1b1b1b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.promotion-countdown strong {
+  color: #0d61a8;
+  font-variant-numeric: tabular-nums;
+}
+
 .card-front {
   transition: transform 0.6s, opacity 0.6s;
   transform-origin: center;

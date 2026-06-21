@@ -17,7 +17,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="info2">10% DESCONTO NO PIX</div>
+        <div className="info2">10% OFF EM PRODUTOS SELECIONADOS</div>
       </section>
 
       <img
