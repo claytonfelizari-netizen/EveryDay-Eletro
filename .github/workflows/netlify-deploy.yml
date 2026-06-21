@@ -19,11 +19,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+
+      - name: Check Netlify token
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+            echo "NETLIFY_AUTH_TOKEN is missing. Add it in GitHub repository Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
       - name: Prepare public files
         run: |
-          mkdir -p _site
-          cp index.html fundo2.png logo.png banner-eletronicos.png produto*.jpg produto*.txt _site/
-          cp -R config _site/
+          test -f out/index.html
 
       - name: Deploy production
         if: github.ref == 'refs/heads/main'
@@ -31,7 +50,7 @@ jobs:
           npx --yes netlify-cli@latest deploy \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --site "$NETLIFY_SITE_ID" \
-            --dir "_site" \
+            --dir "out" \
             --prod \
             --message "Production deploy $GITHUB_SHA"
         env:
@@ -44,7 +63,7 @@ jobs:
           npx --yes netlify-cli@latest deploy \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --site "$NETLIFY_SITE_ID" \
-            --dir "_site" \
+            --dir "out" \
             --alias "$BRANCH_ALIAS" \
             --message "Branch deploy ${GITHUB_REF_NAME} $GITHUB_SHA"
         env:
