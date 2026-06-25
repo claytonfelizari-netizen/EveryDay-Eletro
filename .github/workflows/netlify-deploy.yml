@@ -44,7 +44,7 @@ jobs:
             --data-binary @site.zip \
             "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/deploys")"
           cat netlify-response.json
-          test "$HTTP_CODE" = "200" -o "$HTTP_CODE" = "201"
+          test "$HTTP_CODE" = "200" -o "$HTTP_CODE" = "201" -o "$HTTP_CODE" = "202"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
