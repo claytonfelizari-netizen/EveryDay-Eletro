@@ -48,6 +48,37 @@ function PromotionCountdown({ remaining }) {
   );
 }
 
+function ProductGallery({ product }) {
+  const [activeImage, setActiveImage] = useState(product.image);
+  const images = product.images?.length ? product.images : [product.image];
+
+  return (
+    <>
+      <img className="product-gallery-main" src={activeImage} alt={product.alt} />
+      {images.length > 1 ? (
+        <div className="product-gallery-thumbs" aria-label="Mais imagens do produto">
+          {images.map((image, index) => (
+            <button
+              aria-label={`Ver imagem ${index + 1} do produto ${product.id}`}
+              className={`product-gallery-thumb${
+                activeImage === image ? " ativo" : ""
+              }`}
+              key={image}
+              onClick={(event) => {
+                event.stopPropagation();
+                setActiveImage(image);
+              }}
+              type="button"
+            >
+              <img src={image} alt="" />
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 function ProductCard({ isPromotional, product, remaining, visible }) {
   const [flipped, setFlipped] = useState(false);
   const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -73,7 +104,7 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
     >
       <div className="product-card-inner">
         <div className="card-front">
-          <img src={product.image} alt={product.alt} />
+          <ProductGallery product={product} />
           <div className="product-desc">
             <ProductDescription lines={product.description} />
           </div>
