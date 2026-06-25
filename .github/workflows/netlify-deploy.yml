@@ -47,7 +47,7 @@ jobs:
       - name: Deploy production
         if: github.ref == 'refs/heads/main'
         run: |
-          npx --yes netlify-cli@latest deploy \
+          npx --yes netlify-cli@25.6.2 deploy \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --site "$NETLIFY_SITE_ID" \
             --dir "out" \
@@ -60,7 +60,7 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: |
           BRANCH_ALIAS="$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g; s/^-+|-+$//g' | cut -c1-37)"
-          npx --yes netlify-cli@latest deploy \
+          npx --yes netlify-cli@25.6.2 deploy \
             --auth "$NETLIFY_AUTH_TOKEN" \
             --site "$NETLIFY_SITE_ID" \
             --dir "out" \
