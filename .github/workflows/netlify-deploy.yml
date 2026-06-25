@@ -43,8 +43,13 @@ jobs:
             -H "Content-Type: application/zip" \
             --data-binary @site.zip \
             "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/deploys")"
-          cat netlify-response.json
-          test "$HTTP_CODE" = "200" -o "$HTTP_CODE" = "201" -o "$HTTP_CODE" = "202"
+          RESPONSE="$(tr '\n' ' ' < netlify-response.json | cut -c1-800)"
+          echo "::notice title=Netlify response code::$HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "202" ]; then
+            echo "::error title=Netlify deploy failed::HTTP $HTTP_CODE $RESPONSE"
+            exit 1
+          fi
+          echo "$RESPONSE"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
