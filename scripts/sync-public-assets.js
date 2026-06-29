@@ -9,7 +9,7 @@ fs.mkdirSync(publicDir, { recursive: true });
 fs.mkdirSync(publicConfigDir, { recursive: true });
 
 const fixedAssets = ["logo.png", "banner-eletronicos.png", "fundo2.png"];
-const productImagePattern = /^produto\d+\.jpg$/i;
+const productImagePattern = /^produto\d+(?:-\d+)?\.jpg$/i;
 
 for (const fileName of fs.readdirSync(root)) {
   if (!fixedAssets.includes(fileName) && !productImagePattern.test(fileName)) {
