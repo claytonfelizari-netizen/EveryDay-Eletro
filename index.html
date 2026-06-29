@@ -254,6 +254,23 @@ body {
     font-size: 16px;
 }
 
+.product-buy-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: #FF9900;
+    color: #1B1B1B;
+    font-size: 14px;
+    font-weight: 900;
+    text-decoration: none;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.16);
+}
+
+.product-buy-link:hover {
+    filter: brightness(0.96);
+}
+
 .promotion-countdown {
     display: inline-flex;
     align-items: center;
@@ -585,6 +602,7 @@ function extrairDados(txt) {
     let consumoImg = "";
     let gastoHora = "";
     let preco = "";
+    let link = "";
     let ativo = true;
     const imagens = [];
     const desc = [];
@@ -597,6 +615,8 @@ function extrairDados(txt) {
             referencia = l.substring(l.indexOf(":") + 1).trim();
         } else if (low.startsWith("preço:") || low.startsWith("preco:")) {
             preco = l.substring(l.indexOf(":") + 1).trim();
+        } else if (low.startsWith("link:") || low.startsWith("url:")) {
+            link = l.substring(l.indexOf(":") + 1).trim();
         } else if (low.startsWith("ativo:")) {
             const valor = l.substring(l.indexOf(":") + 1).trim().toLowerCase();
             ativo = !["nao", "não", "no", "false", "0"].includes(valor);
@@ -616,6 +636,7 @@ function extrairDados(txt) {
         categoria,
         referencia,
         preco,
+        link,
         ativo,
         imagens,
         consumoImg,
@@ -665,6 +686,10 @@ function formatarPrecoPromocionalBR(valor) {
     const precoPromocional = aplicarPromocao(valor);
     if (precoPromocional === null) return "";
     return formatarMoedaBR(precoPromocional);
+}
+
+function escaparAtributo(valor) {
+    return String(valor).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function formatarContadorPromocao(ms) {
@@ -860,6 +885,7 @@ async function carregarProduto(i) {
                 <div class="product-offer">
                     ${precoFmt ? `<div class="product-price">R$ ${precoFmt}</div>` : ""}
                 </div>
+                ${dados.link ? `<a class="product-buy-link" href="${escaparAtributo(dados.link)}" target="_blank" rel="noopener noreferrer">Comprar</a>` : ""}
             </div>
             <div class="card-back">
                 <div class="product-title">${codigo}</div>
@@ -903,6 +929,12 @@ async function carregarProduto(i) {
             card.querySelectorAll(".product-gallery-thumb").forEach(item => {
                 item.classList.toggle("ativo", item === btn);
             });
+        });
+    });
+
+    card.querySelectorAll(".product-buy-link").forEach(link => {
+        link.addEventListener("click", event => {
+            event.stopPropagation();
         });
     });
 
