@@ -5,8 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 const PROMOTION_PERCENTAGE = 10;
 const PROMOTION_DURATION_MS = 24 * 60 * 60 * 1000;
 const INITIAL_PROMOTIONAL_PRODUCT_ID = 17;
-const PROMOTION_DEADLINE_KEY = "everyday-eletro-promocao-fim";
-const PROMOTION_PRODUCT_KEY = "everyday-eletro-promocao-produto";
+const PROMOTION_EPOCH_MS = Date.UTC(2024, 0, 1);
 
 const categories = [
   { code: "todos", label: "Todos" },
@@ -154,9 +153,6 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
 
 export default function ProductCatalog({ products }) {
   const productIds = useMemo(() => products.map((product) => product.id), [products]);
-  const fallbackPromotionalProductId = productIds.includes(INITIAL_PROMOTIONAL_PRODUCT_ID)
-    ? INITIAL_PROMOTIONAL_PRODUCT_ID
-    : productIds[0];
   const availableCategories = useMemo(
     () => new Set(products.map((product) => product.category)),
     [products]
@@ -166,69 +162,47 @@ export default function ProductCatalog({ products }) {
     : categories.find((category) => availableCategories.has(category.code))?.code ||
       "todos";
   const [activeCategory, setActiveCategory] = useState(initialCategory);
-  const [activePromotionalProductId, setActivePromotionalProductId] = useState(
-    fallbackPromotionalProductId
-  );
-  const [promotionDeadline, setPromotionDeadline] = useState(
-    Date.now() + PROMOTION_DURATION_MS
-  );
+  const [promotionState, setPromotionState] = useState(() => {
+    const baseIndex = productIds.includes(INITIAL_PROMOTIONAL_PRODUCT_ID)
+      ? productIds.indexOf(INITIAL_PROMOTIONAL_PRODUCT_ID)
+      : 0;
+    const cycle = Math.floor((Date.now() - PROMOTION_EPOCH_MS) / PROMOTION_DURATION_MS);
+    const promoIndex = productIds.length
+      ? (baseIndex + cycle) % productIds.length
+      : 0;
+
+    return {
+      productId: productIds[promoIndex],
+      deadline: PROMOTION_EPOCH_MS + (cycle + 1) * PROMOTION_DURATION_MS,
+    };
+  });
   const [remaining, setRemaining] = useState(PROMOTION_DURATION_MS);
-
-  useEffect(() => {
-    if (!productIds.length) return;
-
-    const storedProductId = Number(window.localStorage.getItem(PROMOTION_PRODUCT_KEY));
-    let initialProductId = productIds.includes(storedProductId)
-      ? storedProductId
-      : fallbackPromotionalProductId;
-    const storedDeadline = Number(window.localStorage.getItem(PROMOTION_DEADLINE_KEY));
-    const deadlineExpired = Number.isFinite(storedDeadline) && storedDeadline <= Date.now();
-    const initialDeadline = Number.isFinite(storedDeadline) && storedDeadline > Date.now()
-      ? storedDeadline
-      : Date.now() + PROMOTION_DURATION_MS;
-
-    if (deadlineExpired) {
-      const currentIndex = productIds.indexOf(initialProductId);
-      initialProductId = productIds[(currentIndex + 1) % productIds.length];
-    }
-
-    setActivePromotionalProductId(initialProductId);
-    setPromotionDeadline(initialDeadline);
-    window.localStorage.setItem(PROMOTION_PRODUCT_KEY, String(initialProductId));
-    window.localStorage.setItem(PROMOTION_DEADLINE_KEY, String(initialDeadline));
-  }, [fallbackPromotionalProductId, productIds]);
 
   useEffect(() => {
     if (!productIds.length) return undefined;
 
-    function rotatePromotion() {
-      setActivePromotionalProductId((currentProductId) => {
-        const currentIndex = productIds.indexOf(currentProductId);
-        const nextProductId = productIds[(currentIndex + 1) % productIds.length];
-        window.localStorage.setItem(PROMOTION_PRODUCT_KEY, String(nextProductId));
-        return nextProductId;
-      });
-
-      const nextDeadline = Date.now() + PROMOTION_DURATION_MS;
-      setPromotionDeadline(nextDeadline);
-      setRemaining(PROMOTION_DURATION_MS);
-      window.localStorage.setItem(PROMOTION_DEADLINE_KEY, String(nextDeadline));
-    }
-
     function updateRemaining() {
-      const nextRemaining = Math.max(0, promotionDeadline - Date.now());
-      setRemaining(nextRemaining);
+      const cycle = Math.floor((Date.now() - PROMOTION_EPOCH_MS) / PROMOTION_DURATION_MS);
+      const baseIndex = productIds.includes(INITIAL_PROMOTIONAL_PRODUCT_ID)
+        ? productIds.indexOf(INITIAL_PROMOTIONAL_PRODUCT_ID)
+        : 0;
+      const promoIndex = productIds.length ? (baseIndex + cycle) % productIds.length : 0;
+      const nextProductId = productIds[promoIndex];
+      const nextDeadline = PROMOTION_EPOCH_MS + (cycle + 1) * PROMOTION_DURATION_MS;
+      const nextRemaining = Math.max(0, nextDeadline - Date.now());
 
-      if (nextRemaining <= 0) {
-        rotatePromotion();
-      }
+      setPromotionState({
+        productId: nextProductId,
+        deadline: nextDeadline,
+      });
+      setRemaining(nextRemaining);
     }
 
     updateRemaining();
     const timer = window.setInterval(updateRemaining, 1000);
 
     return () => window.clearInterval(timer);
-  }, [productIds, promotionDeadline]);
+  }, [productIds]);
 
   return (
     <>
@@ -259,7 +233,7 @@ export default function ProductCatalog({ products }) {
       <section className="produtos" id="lista-produtos">
         {products.map((product) => (
           <ProductCard
-            isPromotional={product.id === activePromotionalProductId}
+            isPromotional={product.id === promotionState.productId}
             key={product.id}
             product={product}
             remaining={remaining}

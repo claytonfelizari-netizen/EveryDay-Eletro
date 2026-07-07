@@ -767,8 +767,7 @@ function extrairDados(txt) {
 const PROMOCAO_PERCENTUAL = 10;
 const PRODUTO_PROMOCIONAL_INICIAL = 17;
 const DURACAO_PROMOCAO_MS = 24 * 60 * 60 * 1000;
-const CHAVE_FIM_PROMOCAO = "everyday-eletro-promocao-fim";
-const CHAVE_PRODUTO_PROMOCAO = "everyday-eletro-promocao-produto";
+const EPOCA_PROMOCAO_MS = Date.UTC(2024, 0, 1);
 
 /* le preço pt-BR (aceita "2590", "2590,90", "2.590,90") */
 function lerPreco(valor) {
@@ -827,33 +826,19 @@ function produtoPromocionalInicial(ids) {
         : ids[0];
 }
 
-function proximoProdutoPromocional(ids, atual) {
-    const indiceAtual = ids.indexOf(atual);
-    return ids[(indiceAtual + 1) % ids.length];
-}
-
-function salvarPromocao(produtoId, fim) {
-    localStorage.setItem(CHAVE_PRODUTO_PROMOCAO, String(produtoId));
-    localStorage.setItem(CHAVE_FIM_PROMOCAO, String(fim));
-}
-
 function obterPromocaoAtual(ids) {
-    const salvoProduto = Number(localStorage.getItem(CHAVE_PRODUTO_PROMOCAO));
-    const salvoFim = Number(localStorage.getItem(CHAVE_FIM_PROMOCAO));
-    let produtoId = ids.includes(salvoProduto)
-        ? salvoProduto
-        : produtoPromocionalInicial(ids);
-    let fim = isFinite(salvoFim) && salvoFim > Date.now()
-        ? salvoFim
-        : Date.now() + DURACAO_PROMOCAO_MS;
-
-    if (isFinite(salvoFim) && salvoFim <= Date.now() && ids.includes(produtoId)) {
-        produtoId = proximoProdutoPromocional(ids, produtoId);
-        fim = Date.now() + DURACAO_PROMOCAO_MS;
+    if (!ids.length) {
+        return { produtoId: null, fim: Date.now() + DURACAO_PROMOCAO_MS };
     }
 
-    salvarPromocao(produtoId, fim);
-    return { produtoId, fim };
+    const indiceBase = ids.includes(PRODUTO_PROMOCIONAL_INICIAL)
+        ? ids.indexOf(PRODUTO_PROMOCIONAL_INICIAL)
+        : 0;
+    const ciclo = Math.floor((Date.now() - EPOCA_PROMOCAO_MS) / DURACAO_PROMOCAO_MS);
+    const indice = (indiceBase + ciclo) % ids.length;
+    const fim = EPOCA_PROMOCAO_MS + (ciclo + 1) * DURACAO_PROMOCAO_MS;
+
+    return { produtoId: ids[indice], fim };
 }
 
 function renderizarOfertas(produtoPromocionalId) {
@@ -888,10 +873,8 @@ function iniciarContadorPromocao() {
 
         if (restante <= 0) {
             promocao = {
-                produtoId: proximoProdutoPromocional(ids, promocao.produtoId),
-                fim: Date.now() + DURACAO_PROMOCAO_MS
+                ...obterPromocaoAtual(ids)
             };
-            salvarPromocao(promocao.produtoId, promocao.fim);
             renderizarOfertas(promocao.produtoId);
             restante = DURACAO_PROMOCAO_MS;
         }
