@@ -826,19 +826,54 @@ function produtoPromocionalInicial(ids) {
         : ids[0];
 }
 
+function gerarOrdemRoleta(ids) {
+    if (ids.length <= 2) return [...ids];
+
+    const ordenados = [...ids].sort((a, b) => a - b);
+    const soma = ordenados.reduce((acc, id) => acc + id, 0);
+    const inicio = soma % ordenados.length;
+    let passo = (soma % (ordenados.length - 1)) + 1;
+
+    while (gcd(passo, ordenados.length) !== 1) {
+        passo = (passo + 1) % ordenados.length || 1;
+    }
+
+    const ordem = [];
+    const usados = new Set();
+    let indice = inicio;
+
+    while (ordem.length < ordenados.length) {
+        if (!usados.has(indice)) {
+            usados.add(indice);
+            ordem.push(ordenados[indice]);
+        }
+        indice = (indice + passo) % ordenados.length;
+    }
+
+    return ordem;
+}
+
+function gcd(a, b) {
+    while (b !== 0) {
+        [a, b] = [b, a % b];
+    }
+    return Math.abs(a);
+}
+
 function obterPromocaoAtual(ids) {
     if (!ids.length) {
         return { produtoId: null, fim: Date.now() + DURACAO_PROMOCAO_MS };
     }
 
-    const indiceBase = ids.includes(PRODUTO_PROMOCIONAL_INICIAL)
-        ? ids.indexOf(PRODUTO_PROMOCIONAL_INICIAL)
+    const ordem = gerarOrdemRoleta(ids);
+    const indiceBase = ordem.includes(PRODUTO_PROMOCIONAL_INICIAL)
+        ? ordem.indexOf(PRODUTO_PROMOCIONAL_INICIAL)
         : 0;
     const ciclo = Math.floor((Date.now() - EPOCA_PROMOCAO_MS) / DURACAO_PROMOCAO_MS);
-    const indice = (indiceBase + ciclo) % ids.length;
+    const indice = (indiceBase + ciclo) % ordem.length;
     const fim = EPOCA_PROMOCAO_MS + (ciclo + 1) * DURACAO_PROMOCAO_MS;
 
-    return { produtoId: ids[indice], fim };
+    return { produtoId: ordem[indice], fim };
 }
 
 function renderizarOfertas(produtoPromocionalId) {

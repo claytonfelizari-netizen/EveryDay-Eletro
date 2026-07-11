@@ -1,6 +1,6 @@
 Referencia: REF 020
 Categoria: ele
-Preco: 125
+Preco: 125,00
 Hi-Level EliteDark Air Cooler para CPU
 ARGB, 240W, 120x120x25mm
 Compativel com Intel LGA e AMD AM4/AM5
