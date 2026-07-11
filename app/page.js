@@ -1,6 +1,5 @@
 import ProductCatalog from "../components/ProductCatalog";
 import { getProducts, getStoreAddress } from "../lib/products";
-import { withSiteBasePath } from "../lib/site-path";
 
 export default function Home() {
   const products = getProducts();
@@ -12,7 +11,7 @@ export default function Home() {
         <div className="logo-bloco">
           <div className="logo" aria-label="Logo EveryDay-Eletro">
             <img
-              src={withSiteBasePath("/logo.png")}
+              src="/logo.png"
               alt="EveryDay-Eletro - Produtos para seu dia a dia"
             />
           </div>
@@ -22,7 +21,7 @@ export default function Home() {
       </section>
 
       <img
-        src={withSiteBasePath("/banner-eletronicos.png")}
+        src="/banner-eletronicos.png"
         className="topo-img"
         alt="Eletronicos e acessorios EveryDay-Eletro"
       />
