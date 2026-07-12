@@ -174,6 +174,15 @@ body {
     margin-bottom: 10px;
 }
 
+.product-gallery-main-button {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+    touch-action: manipulation;
+}
+
 .product-gallery-thumbs {
     display: flex;
     flex-wrap: wrap;
@@ -198,6 +207,8 @@ body {
     box-sizing: border-box;
     overflow: hidden;
     line-height: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .product-gallery-thumb.ativo {
@@ -460,6 +471,40 @@ body {
     margin-top: 10px;
     font-size: 12px;
     font-style: italic;
+}
+
+.product-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px;
+    background: rgba(0,0,0,0.82);
+    cursor: zoom-out;
+}
+
+.product-lightbox[hidden] {
+    display: none !important;
+}
+
+.product-lightbox-image {
+    width: min(92vw, 860px);
+    max-height: 78vh;
+    object-fit: contain;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.product-lightbox-close {
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
 }
 
 /* ======== BOTÃO WHATSAPP ======== */
@@ -980,7 +1025,9 @@ function montarGaleriaProduto(i, imagens) {
         : "";
 
     return `
-        <img class="product-gallery-main" src="${principal}" alt="Produto ${i}">
+        <button class="product-gallery-main-button" type="button" data-gallery-main="${principal}" aria-label="Abrir imagem principal do produto ${i}">
+            <img class="product-gallery-main" src="${principal}" alt="Produto ${i}">
+        </button>
         ${thumbs}
     `;
 }
@@ -1008,6 +1055,7 @@ async function carregarProduto(i) {
         `Olá! Tenho interesse no produto ${codigo} - ${nomeProduto}.`
     );
     const whatsappProduto = `https://wa.me/5544998514184?text=${mensagemWhatsApp}`;
+    const imagemPrincipal = imagens[0];
 
     const card = document.createElement("div");
     card.className = "product-card";
@@ -1061,12 +1109,37 @@ async function carregarProduto(i) {
                 </div>
             </div>
         </div>
+        <div class="product-lightbox" hidden>
+            <img class="product-lightbox-image" src="${imagemPrincipal}" alt="Imagem ampliada do produto ${i}">
+            <span class="product-lightbox-close">Toque para fechar</span>
+        </div>
     `;
 
     const backEl = card.querySelector(".card-back");
     const whatsappEl = card.querySelector(".card-back-whatsapp");
+    const lightboxEl = card.querySelector(".product-lightbox");
+    const lightboxImg = card.querySelector(".product-lightbox-image");
 
     whatsappEl.addEventListener("click", event => event.stopPropagation());
+
+    function abrirLightbox(src) {
+        lightboxImg.src = src;
+        lightboxEl.hidden = false;
+    }
+
+    function fecharLightbox() {
+        lightboxEl.hidden = true;
+    }
+
+    card.querySelector(".product-gallery-main-button").addEventListener("click", event => {
+        event.stopPropagation();
+        abrirLightbox(event.currentTarget.dataset.galleryMain);
+    });
+
+    lightboxEl.addEventListener("click", event => {
+        event.stopPropagation();
+        fecharLightbox();
+    });
 
     card.addEventListener("click", () => {
         const virou = card.classList.toggle("flipped");
@@ -1087,6 +1160,7 @@ async function carregarProduto(i) {
             const novaImagem = btn.dataset.galleryImage;
             const imgPrincipal = card.querySelector(".product-gallery-main");
             imgPrincipal.src = novaImagem;
+            abrirLightbox(novaImagem);
             card.querySelectorAll(".product-gallery-thumb").forEach(item => {
                 item.classList.toggle("ativo", item === btn);
             });

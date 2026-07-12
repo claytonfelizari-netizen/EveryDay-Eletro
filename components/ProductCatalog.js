@@ -49,11 +49,25 @@ function PromotionCountdown({ remaining }) {
 
 function ProductGallery({ product }) {
   const [activeImage, setActiveImage] = useState(product.image);
+  const [lightboxImage, setLightboxImage] = useState("");
   const images = product.images?.length ? product.images : [product.image];
+
+  function openLightbox(image) {
+    setLightboxImage(image);
+  }
 
   return (
     <>
-      <img className="product-gallery-main" src={activeImage} alt={product.alt} />
+      <button
+        className="product-gallery-main-button"
+        onClick={(event) => {
+          event.stopPropagation();
+          openLightbox(activeImage);
+        }}
+        type="button"
+      >
+        <img className="product-gallery-main" src={activeImage} alt={product.alt} />
+      </button>
       {images.length > 1 ? (
         <div className="product-gallery-thumbs" aria-label="Mais imagens do produto">
           {images.map((image, index) => (
@@ -72,6 +86,23 @@ function ProductGallery({ product }) {
               <img src={image} alt="" />
             </button>
           ))}
+        </div>
+      ) : null}
+      {lightboxImage ? (
+        <div
+          className="product-lightbox"
+          onClick={(event) => {
+            event.stopPropagation();
+            setLightboxImage("");
+          }}
+          role="presentation"
+        >
+          <img
+            alt={product.alt}
+            className="product-lightbox-image"
+            src={lightboxImage}
+          />
+          <span className="product-lightbox-close">Toque para fechar</span>
         </div>
       ) : null}
     </>

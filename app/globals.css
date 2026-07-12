@@ -159,6 +159,15 @@ body {
   margin-bottom: 10px;
 }
 
+.product-gallery-main-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+  touch-action: manipulation;
+}
+
 .product-gallery-thumbs {
   display: flex;
   justify-content: center;
@@ -174,6 +183,8 @@ body {
   border-radius: 8px;
   background: white;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .product-gallery-thumb.ativo {
@@ -186,6 +197,36 @@ body {
   object-fit: contain;
   margin: 0;
   display: block;
+}
+
+.product-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.82);
+  cursor: zoom-out;
+}
+
+.product-lightbox-image {
+  width: min(92vw, 860px);
+  max-height: 78vh;
+  object-fit: contain;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.product-lightbox-close {
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .product-title {
