@@ -1,7 +1,9 @@
-Ativo: nao
+Ativo: sim
 Referencia: REF 014
 Categoria: ele
-Preco: 159,50
-PHILIPS Fone de Ouvido Sem Fio TWS TAT2500BK/00
-Bluetooth com cancelamento de ruido ativo ANC
-Microfone, IPX4 e ate 24 horas de bateria - Preto
+Preco: 155
+Imagens: produto14-2.png, produto14-3.png, produto14-4.png, produto14-5.png
+Fone de Ouvido Sem Fio TWS PHILIPS TAT2500BK/00, Bluetooth, Preto
+Com Cancelamento de Ruido Ativo ANC, Com Microfone, Ate 24 horas de bateria, IPX4
+True Wireless intra-auricular com design compacto e acabamento preto
+Conforto no uso diario, chamadas mais claras e carregamento pratico
