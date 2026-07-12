@@ -4,3 +4,10 @@ node_modules/
 .codex-tools/
 out/
 .env*.local
+.DS_Store
+.pnpm-store/
+arquivos-publicacao/
+*.zip
+pnpm-lock.yaml
+pnpm-workspace.yaml
+post-instagram-everyday-eletro.png
