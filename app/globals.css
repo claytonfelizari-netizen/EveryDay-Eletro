@@ -374,6 +374,33 @@ a {
   font-weight: 900;
 }
 
+.back-promo-line {
+  margin-top: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.back-price-original {
+  color: #6f7b88;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: line-through;
+}
+
+.back-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ffcf32;
+  color: #1b1b1b;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .modal-gallery-thumbs {
   margin-top: 42px;
   min-height: 76px;

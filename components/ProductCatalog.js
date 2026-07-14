@@ -192,7 +192,17 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
               {product.price ? (
                 <div className="back-footer">
                   <div className="back-price-label">Preço</div>
-                  <div className="back-price">R$ {product.price}</div>
+                  {isPromotional && product.promotionalPrice ? (
+                    <div className="back-promo-line">
+                      <span className="back-price-original">R$ {product.price}</span>
+                      <span className="back-promo-badge">
+                        {PROMOTION_PERCENTAGE}% desconto
+                      </span>
+                      <span className="back-price">R$ {product.promotionalPrice}</span>
+                    </div>
+                  ) : (
+                    <div className="back-price">R$ {product.price}</div>
+                  )}
                   <ProductThumbs
                     activeImageIndex={modalImageIndex}
                     product={product}
