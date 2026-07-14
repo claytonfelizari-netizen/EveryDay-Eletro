@@ -206,19 +206,24 @@ a {
 
 .product-desc {
   color: #253244;
-  font-size: 14px;
-  line-height: 1.35;
+  font-size: 15px;
+  line-height: 1.38;
   text-align: center;
 }
 
 .card-front .product-desc {
   height: 96px;
   position: relative;
-  top: 14px;
+  top: 56px;
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: 4;
+}
+
+.promotional-card .card-front .product-desc {
+  top: 14px;
+  -webkit-line-clamp: 4;
 }
 
 .product-offer {
@@ -657,6 +662,12 @@ a {
 
   .card-front .product-desc {
     height: 76px;
+    top: 36px;
+    font-size: 14px;
+  }
+
+  .promotional-card .card-front .product-desc {
+    top: 10px;
   }
 
   .topo-img {

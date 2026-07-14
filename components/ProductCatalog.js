@@ -54,7 +54,12 @@ function ProductGallery({ activeImageIndex = 0, product }) {
 
   return (
     <div className="product-gallery">
-      <img className="product-gallery-main" src={activeImage} alt={product.alt} />
+      <img
+        className="product-gallery-main"
+        decoding="async"
+        src={activeImage}
+        alt={product.alt}
+      />
     </div>
   );
 }
@@ -76,7 +81,7 @@ function ProductThumbs({ activeImageIndex, product, setActiveImageIndex }) {
           onClick={() => setActiveImageIndex(index)}
           type="button"
         >
-          <img src={image} alt="" />
+          <img decoding="async" loading="eager" src={image} alt="" />
         </button>
       ))}
     </div>
@@ -105,7 +110,7 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
   return (
     <>
       <article
-        className="product-card"
+        className={`product-card${isPromotional ? " promotional-card" : ""}`}
         data-cat={product.category}
         style={{ display: visible ? "block" : "none" }}
       >
@@ -206,12 +211,6 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
                   </a>
                 </div>
               ) : null}
-              {product.category !== "ele" ? (
-                <div className="aviso">
-                  * Valores estimados. Podem variar conforme uso, modelo e
-                  instalação.
-                </div>
-              ) : null}
             </div>
           </article>
         </div>
@@ -246,6 +245,26 @@ export default function ProductCatalog({ products }) {
     };
   });
   const [remaining, setRemaining] = useState(PROMOTION_DURATION_MS);
+
+  useEffect(() => {
+    const preloadImages = () => {
+      products.forEach((product) => {
+        product.images?.forEach((image) => {
+          const preload = new Image();
+          preload.decoding = "async";
+          preload.src = image;
+        });
+      });
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(preloadImages, { timeout: 2500 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timer = window.setTimeout(preloadImages, 800);
+    return () => window.clearTimeout(timer);
+  }, [products]);
 
   useEffect(() => {
     if (!productIds.length) return undefined;
