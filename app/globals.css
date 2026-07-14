@@ -523,6 +523,12 @@ a {
   margin: 6px 0;
 }
 
+#endereco-loja {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
 .pickup-store-highlight {
   display: inline-block;
   margin-top: 8px;
@@ -660,6 +666,16 @@ a {
     height: 100px;
   }
 
+  .product-price {
+    font-size: 26px;
+    font-weight: 1000;
+  }
+
+  .back-price {
+    font-size: 28px;
+    font-weight: 1000;
+  }
+
   .card-front .product-desc {
     height: 76px;
     top: 36px;
@@ -685,5 +701,9 @@ a {
 
   .whats-btn {
     padding: 12px 18px;
+  }
+
+  .rodape {
+    padding-bottom: 118px;
   }
 }

@@ -225,10 +225,7 @@ export default function ProductCatalog({ products }) {
     () => new Set(products.map((product) => product.category)),
     [products]
   );
-  const initialCategory = availableCategories.has("ele")
-    ? "ele"
-    : categories.find((category) => availableCategories.has(category.code))?.code ||
-      "todos";
+  const initialCategory = "todos";
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [promotionState, setPromotionState] = useState(() => {
     const baseIndex = productIds.includes(INITIAL_PROMOTIONAL_PRODUCT_ID)
