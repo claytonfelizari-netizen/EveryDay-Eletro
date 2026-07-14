@@ -15,6 +15,7 @@ const categories = [
   { code: "cli", label: "Climatizadores" },
   { code: "pur", label: "Purificadores" },
   { code: "ele", label: "Eletrônicos" },
+  { code: "ace", label: "Acessórios" },
 ];
 
 function ProductDescription({ lines }) {
@@ -47,77 +48,53 @@ function PromotionCountdown({ remaining }) {
   );
 }
 
-function ProductGallery({ product }) {
-  const [activeImage, setActiveImage] = useState(product.image);
-  const [lightboxImage, setLightboxImage] = useState("");
+function ProductGallery({ activeImageIndex = 0, product }) {
   const images = product.images?.length ? product.images : [product.image];
-
-  function openLightbox(image) {
-    setLightboxImage(image);
-  }
+  const activeImage = images[activeImageIndex] || product.image;
 
   return (
-    <>
-      <button
-        className="product-gallery-main-button"
-        onClick={(event) => {
-          event.stopPropagation();
-          openLightbox(activeImage);
-        }}
-        type="button"
-      >
-        <img className="product-gallery-main" src={activeImage} alt={product.alt} />
-      </button>
-      {images.length > 1 ? (
-        <div className="product-gallery-thumbs" aria-label="Mais imagens do produto">
-          {images.map((image, index) => (
-            <button
-              aria-label={`Ver imagem ${index + 1} do produto ${product.id}`}
-              className={`product-gallery-thumb${
-                activeImage === image ? " ativo" : ""
-              }`}
-              key={image}
-              onClick={(event) => {
-                event.stopPropagation();
-                setActiveImage(image);
-              }}
-              type="button"
-            >
-              <img src={image} alt="" />
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {lightboxImage ? (
-        <div
-          className="product-lightbox"
-          onClick={(event) => {
-            event.stopPropagation();
-            setLightboxImage("");
-          }}
-          role="presentation"
+    <div className="product-gallery">
+      <img className="product-gallery-main" src={activeImage} alt={product.alt} />
+    </div>
+  );
+}
+
+function ProductThumbs({ activeImageIndex, product, setActiveImageIndex }) {
+  const images = product.images?.length ? product.images : [product.image];
+
+  if (images.length <= 1) return null;
+
+  return (
+    <div className="modal-gallery-thumbs" aria-label="Mais imagens do produto">
+      {images.map((image, index) => (
+        <button
+          aria-label={`Ver imagem ${index + 1} do produto ${product.id}`}
+          className={`modal-gallery-thumb${
+            activeImageIndex === index ? " ativo" : ""
+          }`}
+          key={image}
+          onClick={() => setActiveImageIndex(index)}
+          type="button"
         >
-          <img
-            alt={product.alt}
-            className="product-lightbox-image"
-            src={lightboxImage}
-          />
-          <span className="product-lightbox-close">Toque para fechar</span>
-        </div>
-      ) : null}
-    </>
+          <img src={image} alt="" />
+        </button>
+      ))}
+    </div>
   );
 }
 
 function ProductCard({ isPromotional, product, remaining, visible }) {
   const [flipped, setFlipped] = useState(false);
   const [scrollEnabled, setScrollEnabled] = useState(false);
+  const [modalImageIndex, setModalImageIndex] = useState(0);
 
-  function handleClick() {
+  function toggleDetails(event) {
+    event.stopPropagation();
     const nextFlipped = !flipped;
     setFlipped(nextFlipped);
 
     if (nextFlipped) {
+      setModalImageIndex(0);
       setScrollEnabled(false);
       window.setTimeout(() => setScrollEnabled(true), 400);
     } else {
@@ -126,59 +103,113 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
   }
 
   return (
-    <article
-      className={`product-card${flipped ? " flipped" : ""}`}
-      data-cat={product.category}
-      onClick={handleClick}
-      style={{ display: visible ? "block" : "none" }}
-    >
-      <div className="product-card-inner">
-        <div className="card-front">
-          <ProductGallery product={product} />
-          <div className="product-desc">
-            <ProductDescription lines={product.description} />
+    <>
+      <article
+        className="product-card"
+        data-cat={product.category}
+        style={{ display: visible ? "block" : "none" }}
+      >
+        <button
+          aria-label="Ver detalhes do produto"
+          className="product-card-expand"
+          onClick={toggleDetails}
+          type="button"
+        >
+          i
+        </button>
+        <div className="product-card-inner">
+          <div className="card-front">
+            <ProductGallery product={product} />
+            <div className="product-desc">
+              <ProductDescription lines={product.description} />
+            </div>
+            <div className="product-offer">
+              {isPromotional && product.price && product.promotionalPrice ? (
+                <>
+                  <div className="product-promo-badge">
+                    {PROMOTION_PERCENTAGE}% OFF
+                  </div>
+                  <div className="product-price-original">R$ {product.price}</div>
+                  <div className="product-price">R$ {product.promotionalPrice}</div>
+                  <div className="product-price-pix">Promoção por tempo limitado</div>
+                  <PromotionCountdown remaining={remaining} />
+                </>
+              ) : product.price ? (
+                <div className="product-price">R$ {product.price}</div>
+              ) : null}
+            </div>
           </div>
-          {isPromotional && product.price && product.promotionalPrice ? (
-            <>
-              <div className="product-promo-badge">
-                {PROMOTION_PERCENTAGE}% OFF
-              </div>
-              <div className="product-price-original">R$ {product.price}</div>
-              <div className="product-price">R$ {product.promotionalPrice}</div>
-              <div className="product-price-pix">Promoção por tempo limitado</div>
-              <PromotionCountdown remaining={remaining} />
-            </>
-          ) : product.price ? (
-            <div className="product-price">R$ {product.price}</div>
-          ) : null}
         </div>
+      </article>
 
-        <div className={`card-back${scrollEnabled ? " scroll-on" : ""}`}>
-          <div className="product-title">{product.reference}</div>
-          <div className="product-desc">
-            <ProductDescription lines={product.description} />
-          </div>
-          {product.consumptionImage ? (
-            <img
-              src={product.consumptionImage}
-              alt="Etiqueta de consumo"
-              className="inmetro-img"
-            />
-          ) : null}
-          {product.hourlyCost ? (
-            <div className="gasto-hora">
-              Consumo estimado por hora: <strong>R$ {product.hourlyCost}</strong>
+      {flipped ? (
+        <div className="product-detail-overlay" onClick={toggleDetails} role="presentation">
+          <article
+            className="product-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              aria-label="Fechar detalhes do produto"
+              className="product-detail-close"
+              onClick={toggleDetails}
+              type="button"
+            >
+              ×
+            </button>
+            <ProductGallery activeImageIndex={modalImageIndex} product={product} />
+            <div className={`card-back${scrollEnabled ? " scroll-on" : ""}`}>
+              <div className="back-header">
+                <div className="back-heading">Detalhes</div>
+                <div className="back-reference">{product.reference}</div>
+              </div>
+              <div className="back-name">
+                <ProductDescription lines={product.description} />
+              </div>
+              {product.consumptionImage ? (
+                <img
+                  src={product.consumptionImage}
+                  alt="Etiqueta de consumo"
+                  className="inmetro-img"
+                />
+              ) : null}
+              {product.hourlyCost ? (
+                <div className="gasto-hora">
+                  Consumo estimado por hora: <strong>R$ {product.hourlyCost}</strong>
+                </div>
+              ) : null}
+              {product.price ? (
+                <div className="back-footer">
+                  <div className="back-price-label">Preço</div>
+                  <div className="back-price">R$ {product.price}</div>
+                  <ProductThumbs
+                    activeImageIndex={modalImageIndex}
+                    product={product}
+                    setActiveImageIndex={setModalImageIndex}
+                  />
+                  <a
+                    className="card-back-whatsapp"
+                    href={`https://wa.me/5544998514184?text=${encodeURIComponent(
+                      `Olá! Tenho interesse no produto ${product.reference}: ${product.description.join(" ")}`
+                    )}`}
+                    onClick={(event) => event.stopPropagation()}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Chamar no WhatsApp
+                  </a>
+                </div>
+              ) : null}
+              {product.category !== "ele" ? (
+                <div className="aviso">
+                  * Valores estimados. Podem variar conforme uso, modelo e
+                  instalação.
+                </div>
+              ) : null}
             </div>
-          ) : null}
-          {product.category !== "ele" ? (
-            <div className="aviso">
-              * Valores estimados. Podem variar conforme uso, modelo e
-              instalação.
-            </div>
-          ) : null}
+          </article>
         </div>
-      </div>
-    </article>
+      ) : null}
+    </>
   );
 }
 
