@@ -157,6 +157,13 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
               ×
             </button>
             <ProductGallery activeImageIndex={modalImageIndex} product={product} />
+            <div className="modal-thumbs-mobile">
+              <ProductThumbs
+                activeImageIndex={modalImageIndex}
+                product={product}
+                setActiveImageIndex={setModalImageIndex}
+              />
+            </div>
             <div className={`card-back${scrollEnabled ? " scroll-on" : ""}`}>
               <div className="back-header">
                 <div className="back-heading">Detalhes</div>
