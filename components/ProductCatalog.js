@@ -48,7 +48,7 @@ function PromotionCountdown({ remaining }) {
   );
 }
 
-function ProductGallery({ activeImageIndex = 0, product }) {
+function ProductGallery({ activeImageIndex = 0, eager = false, product }) {
   const images = product.images?.length ? product.images : [product.image];
   const activeImage = images[activeImageIndex] || product.image;
 
@@ -57,6 +57,8 @@ function ProductGallery({ activeImageIndex = 0, product }) {
       <img
         className="product-gallery-main"
         decoding="async"
+        fetchPriority={eager ? "high" : "auto"}
+        loading={eager ? "eager" : "auto"}
         src={activeImage}
         alt={product.alt}
       />
@@ -81,7 +83,7 @@ function ProductThumbs({ activeImageIndex, product, setActiveImageIndex }) {
           onClick={() => setActiveImageIndex(index)}
           type="button"
         >
-          <img decoding="async" loading="eager" src={image} alt="" />
+          <img decoding="async" fetchPriority="high" loading="eager" src={image} alt="" />
         </button>
       ))}
     </div>
@@ -90,7 +92,6 @@ function ProductThumbs({ activeImageIndex, product, setActiveImageIndex }) {
 
 function ProductCard({ isPromotional, product, remaining, visible }) {
   const [flipped, setFlipped] = useState(false);
-  const [scrollEnabled, setScrollEnabled] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
 
   function toggleDetails(event) {
@@ -100,10 +101,6 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
 
     if (nextFlipped) {
       setModalImageIndex(0);
-      setScrollEnabled(false);
-      window.setTimeout(() => setScrollEnabled(true), 400);
-    } else {
-      setScrollEnabled(false);
     }
   }
 
@@ -161,7 +158,7 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
             >
               ×
             </button>
-            <ProductGallery activeImageIndex={modalImageIndex} product={product} />
+            <ProductGallery activeImageIndex={modalImageIndex} eager product={product} />
             <div className="modal-thumbs-mobile">
               <ProductThumbs
                 activeImageIndex={modalImageIndex}
@@ -169,7 +166,7 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
                 setActiveImageIndex={setModalImageIndex}
               />
             </div>
-            <div className={`card-back${scrollEnabled ? " scroll-on" : ""}`}>
+            <div className="card-back">
               <div className="back-header">
                 <div className="back-heading">Detalhes</div>
                 <div className="back-reference">{product.reference}</div>
@@ -259,18 +256,20 @@ export default function ProductCatalog({ products }) {
         product.images?.forEach((image) => {
           const preload = new Image();
           preload.decoding = "async";
+          preload.fetchPriority = "high";
           preload.src = image;
         });
       });
     };
+
+    preloadImages();
 
     if ("requestIdleCallback" in window) {
       const idleId = window.requestIdleCallback(preloadImages, { timeout: 2500 });
       return () => window.cancelIdleCallback(idleId);
     }
 
-    const timer = window.setTimeout(preloadImages, 800);
-    return () => window.clearTimeout(timer);
+    return undefined;
   }, [products]);
 
   useEffect(() => {
