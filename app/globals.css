@@ -206,23 +206,23 @@ a {
 
 .product-desc {
   color: #253244;
-  font-size: 15px;
-  line-height: 1.38;
+  font-size: 14px;
+  line-height: 1.35;
   text-align: center;
 }
 
 .card-front .product-desc {
   height: 96px;
   position: relative;
-  top: 56px;
+  top: 14px;
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
 }
 
 .promotional-card .card-front .product-desc {
-  top: 14px;
+  top: 10px;
   -webkit-line-clamp: 4;
 }
 
