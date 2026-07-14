@@ -18,6 +18,21 @@ const categories = [
   { code: "ace", label: "Acessórios" },
 ];
 
+const preloadedImageUrls = new Set();
+
+function preloadProductImages(product) {
+  if (typeof window === "undefined") return;
+
+  product.images?.forEach((image) => {
+    if (preloadedImageUrls.has(image)) return;
+
+    const preload = new Image();
+    preload.decoding = "async";
+    preload.src = image;
+    preloadedImageUrls.add(image);
+  });
+}
+
 function ProductDescription({ lines }) {
   return (
     <>
@@ -57,8 +72,7 @@ function ProductGallery({ activeImageIndex = 0, eager = false, product }) {
       <img
         className="product-gallery-main"
         decoding="async"
-        fetchPriority={eager ? "high" : "auto"}
-        loading={eager ? "eager" : "auto"}
+        loading={eager ? "eager" : undefined}
         src={activeImage}
         alt={product.alt}
       />
@@ -83,7 +97,7 @@ function ProductThumbs({ activeImageIndex, product, setActiveImageIndex }) {
           onClick={() => setActiveImageIndex(index)}
           type="button"
         >
-          <img decoding="async" fetchPriority="high" loading="eager" src={image} alt="" />
+          <img decoding="async" loading="eager" src={image} alt="" />
         </button>
       ))}
     </div>
@@ -92,6 +106,7 @@ function ProductThumbs({ activeImageIndex, product, setActiveImageIndex }) {
 
 function ProductCard({ isPromotional, product, remaining, visible }) {
   const [flipped, setFlipped] = useState(false);
+  const [scrollEnabled, setScrollEnabled] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
 
   function toggleDetails(event) {
@@ -101,6 +116,10 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
 
     if (nextFlipped) {
       setModalImageIndex(0);
+      setScrollEnabled(false);
+      window.setTimeout(() => setScrollEnabled(true), 400);
+    } else {
+      setScrollEnabled(false);
     }
   }
 
@@ -115,6 +134,9 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
           aria-label="Ver detalhes do produto"
           className="product-card-expand"
           onClick={toggleDetails}
+          onFocus={() => preloadProductImages(product)}
+          onPointerDown={() => preloadProductImages(product)}
+          onPointerEnter={() => preloadProductImages(product)}
           type="button"
         >
           i
@@ -166,7 +188,7 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
                 setActiveImageIndex={setModalImageIndex}
               />
             </div>
-            <div className="card-back">
+            <div className={`card-back${scrollEnabled ? " scroll-on" : ""}`}>
               <div className="back-header">
                 <div className="back-heading">Detalhes</div>
                 <div className="back-reference">{product.reference}</div>
@@ -254,22 +276,23 @@ export default function ProductCatalog({ products }) {
     const preloadImages = () => {
       products.forEach((product) => {
         product.images?.forEach((image) => {
+          if (preloadedImageUrls.has(image)) return;
+
           const preload = new Image();
           preload.decoding = "async";
-          preload.fetchPriority = "high";
           preload.src = image;
+          preloadedImageUrls.add(image);
         });
       });
     };
-
-    preloadImages();
 
     if ("requestIdleCallback" in window) {
       const idleId = window.requestIdleCallback(preloadImages, { timeout: 2500 });
       return () => window.cancelIdleCallback(idleId);
     }
 
-    return undefined;
+    const timer = window.setTimeout(preloadImages, 800);
+    return () => window.clearTimeout(timer);
   }, [products]);
 
   useEffect(() => {
