@@ -518,6 +518,17 @@ a {
   margin: 6px 0;
 }
 
+.pickup-store-highlight {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #f7c948;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 @media (min-width: 1280px) {
   .produtos {
     grid-template-columns: repeat(4, minmax(0, 1fr));

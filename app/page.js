@@ -4,6 +4,7 @@ import { getProducts, getStoreAddress } from "../lib/products";
 export default function Home() {
   const products = getProducts();
   const address = getStoreAddress();
+  const pickupAddress = address.replace(/\s*-\s*na loja Gabba/i, "");
 
   return (
     <>
@@ -44,7 +45,11 @@ export default function Home() {
         <p>
           <strong>Endereco para coleta:</strong>
           <br />
-          <span id="endereco-loja">{address}</span>
+          <span id="endereco-loja">
+            {pickupAddress}
+            <br />
+            <span className="pickup-store-highlight">LOJA GABBA</span>
+          </span>
         </p>
         <p>CNPJ: 63.280.662/0001-82</p>
       </footer>
