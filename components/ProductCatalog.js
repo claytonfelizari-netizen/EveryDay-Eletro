@@ -55,6 +55,39 @@ function formatCountdown(milliseconds) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
+function createSeededRandom(seed) {
+  let state = seed >>> 0;
+
+  return () => {
+    state += 0x6d2b79f5;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function getPromotionalProductId(productIds, cycle) {
+  if (!productIds.length) return undefined;
+
+  const block = Math.floor(cycle / productIds.length);
+  const position = cycle % productIds.length;
+  const shuffledIds = [...productIds].sort((a, b) => a - b);
+  const random = createSeededRandom(
+    block + INITIAL_PROMOTIONAL_PRODUCT_ID * 997 + shuffledIds.length
+  );
+
+  for (let index = shuffledIds.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(random() * (index + 1));
+    [shuffledIds[index], shuffledIds[randomIndex]] = [
+      shuffledIds[randomIndex],
+      shuffledIds[index],
+    ];
+  }
+
+  return shuffledIds[position];
+}
+
 function PromotionCountdown({ remaining }) {
   return (
     <div className="promotion-countdown">
@@ -249,7 +282,10 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
 }
 
 export default function ProductCatalog({ products }) {
-  const productIds = useMemo(() => products.map((product) => product.id), [products]);
+  const productIds = useMemo(
+    () => products.filter((product) => product.price).map((product) => product.id),
+    [products]
+  );
   const availableCategories = useMemo(
     () => new Set(products.map((product) => product.category)),
     [products]
@@ -257,16 +293,10 @@ export default function ProductCatalog({ products }) {
   const initialCategory = "todos";
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [promotionState, setPromotionState] = useState(() => {
-    const baseIndex = productIds.includes(INITIAL_PROMOTIONAL_PRODUCT_ID)
-      ? productIds.indexOf(INITIAL_PROMOTIONAL_PRODUCT_ID)
-      : 0;
     const cycle = Math.floor((Date.now() - PROMOTION_EPOCH_MS) / PROMOTION_DURATION_MS);
-    const promoIndex = productIds.length
-      ? (baseIndex + cycle) % productIds.length
-      : 0;
 
     return {
-      productId: productIds[promoIndex],
+      productId: getPromotionalProductId(productIds, cycle),
       deadline: PROMOTION_EPOCH_MS + (cycle + 1) * PROMOTION_DURATION_MS,
     };
   });
@@ -300,11 +330,7 @@ export default function ProductCatalog({ products }) {
 
     function updateRemaining() {
       const cycle = Math.floor((Date.now() - PROMOTION_EPOCH_MS) / PROMOTION_DURATION_MS);
-      const baseIndex = productIds.includes(INITIAL_PROMOTIONAL_PRODUCT_ID)
-        ? productIds.indexOf(INITIAL_PROMOTIONAL_PRODUCT_ID)
-        : 0;
-      const promoIndex = productIds.length ? (baseIndex + cycle) % productIds.length : 0;
-      const nextProductId = productIds[promoIndex];
+      const nextProductId = getPromotionalProductId(productIds, cycle);
       const nextDeadline = PROMOTION_EPOCH_MS + (cycle + 1) * PROMOTION_DURATION_MS;
       const nextRemaining = Math.max(0, nextDeadline - Date.now());
 
