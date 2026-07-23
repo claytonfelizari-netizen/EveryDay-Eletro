@@ -204,6 +204,7 @@ a {
   user-select: none;
 }
 
+.product-title,
 .product-desc {
   color: #253244;
   font-size: 14px;
@@ -211,23 +212,20 @@ a {
   text-align: center;
 }
 
-.card-front .product-desc {
-  height: 96px;
-  position: relative;
-  top: 14px;
+.product-title {
+  height: 38px;
+  margin: 0;
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-}
-
-.promotional-card .card-front .product-desc {
-  top: 10px;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 2;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .product-offer {
-  height: 94px;
+  height: 132px;
+  min-height: 132px;
   margin-top: auto;
   display: flex;
   flex-direction: column;
@@ -689,10 +687,6 @@ a {
     height: 62px;
   }
 
-  .product-offer {
-    height: 100px;
-  }
-
   .product-price {
     font-size: 26px;
     font-weight: 1000;
@@ -703,14 +697,9 @@ a {
     font-weight: 1000;
   }
 
-  .card-front .product-desc {
-    height: 76px;
-    top: 36px;
+  .product-title {
+    height: 38px;
     font-size: 14px;
-  }
-
-  .promotional-card .card-front .product-desc {
-    top: 10px;
   }
 
   .topo-img {

@@ -177,9 +177,9 @@ function ProductCard({ isPromotional, product, remaining, visible }) {
         <div className="product-card-inner">
           <div className="card-front">
             <ProductGallery product={product} />
-            <div className="product-desc">
-              <ProductDescription lines={product.description} />
-            </div>
+            <h2 className="product-title">
+              {product.description.slice(0, 2).join(" — ") || `Produto ${product.id}`}
+            </h2>
             <div className="product-offer">
               {isPromotional && product.price && product.promotionalPrice ? (
                 <>
