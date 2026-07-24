@@ -1,5 +1,6 @@
 import ProductCatalog from "../components/ProductCatalog";
 import { getProducts, getStoreAddress } from "../lib/products";
+import Link from "next/link";
 
 export default function Home() {
   const products = getProducts();
@@ -52,6 +53,11 @@ export default function Home() {
           </span>
         </p>
         <p>CNPJ: 63.280.662/0001-82</p>
+        <p>
+          <Link className="footer-privacy-link" href="/politica-de-privacidade">
+            Política de Privacidade
+          </Link>
+        </p>
       </footer>
     </>
   );
